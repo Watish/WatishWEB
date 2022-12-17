@@ -14,9 +14,7 @@
         }
     ],
     "require": {
-        "mix/vega": "^3.0",
       "ext-mbstring": "*",
-        "wujunze/php-cli-color": "^2.4",
         "predis/predis": "^2.0",
         "cakephp/validation": "^4.4",
         "illuminate/database": "^9.43",
@@ -27,7 +25,8 @@
         "dragonmantank/cron-expression": "^3.3",
         "league/climate": "^3.8",
         "filp/whoops": "^2.14",
-        "ulrichsg/getopt-php": "^4.0"
+        "ulrichsg/getopt-php": "^4.0",
+        "illuminate/validation": "^9.44"
     },
     "require-dev": {
         "eaglewu/swoole-ide-helper": "dev-master"

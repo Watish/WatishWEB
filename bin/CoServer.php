@@ -54,11 +54,6 @@ $redisPool = RedisPoolConstructor::init();
 //Init ClassLoader and Inject
 ClassLoaderConstructor::init();
 
-$controllerLoader = ClassLoaderConstructor::getClassLoader("controller");
-$attrLoader = new \Watish\Components\Utils\AttributeLoader\AttributeLoader($controllerLoader->getClasses());
-$res = $attrLoader->getMethodAttributes(\Watish\Components\Attribute\Aspect::class);
-Logger::debug($res);
-
 //Init Commando
 CommandConstructor::init();
 CommandConstructor::autoRegister();

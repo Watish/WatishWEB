@@ -7,6 +7,7 @@ use Watish\Components\Attribute\Aspect;
 use Watish\Components\Attribute\Inject;
 use Watish\Components\Attribute\Path;
 use Watish\Components\Attribute\Prefix;
+use Watish\Components\Constructor\ValidatorConstructor;
 use Watish\Components\Includes\Context;
 use Watish\Components\Utils\Logger;
 use Watish\MyWebsocket\Middleware\TokenValid;
@@ -29,6 +30,18 @@ class HelloController
     public function index(Context $context): void
     {
         Logger::debug(111);
+        $request = $context->getRequest();
+        $validator = ValidatorConstructor::make($request->GetAll(),[
+           "name" => "required|min:6|max:20"
+        ]);
+        if($validator->fails())
+        {
+            $context->json([
+                "msg" => $validator->errors()
+            ]);
+            $context->abort();
+            return;
+        }
         $context->json([
             "msg" => "Hello"
         ]);
