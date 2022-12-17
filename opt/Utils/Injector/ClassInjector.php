@@ -3,6 +3,7 @@
 namespace Watish\Components\Utils\Injector;
 
 use SebastianBergmann\Diff\Exception;
+use Watish\Components\Attribute\Aspect;
 use Watish\Components\Attribute\Inject;
 use Watish\Components\Constructor\ClassLoaderConstructor;
 use Watish\Components\Utils\Cache\ClassCache;
@@ -62,6 +63,23 @@ class ClassInjector
             $inject_class_name = $attributes[0]->getArguments()[0];
             $property->setValue($obj,self::deep_inject_to_instance($inject_class_name));
             Logger::debug("{$class_name}:{$property_name} Injected by {$inject_class_name}","Injector");
+        }
+
+        $methods = $reflectionClass->getMethods();
+        $proxy = false;
+        foreach ($methods as $method)
+        {
+            $methodAttributes = $method->getAttributes(Aspect::class);
+            if(count($methodAttributes) > 0)
+            {
+                $proxy = true;
+                break;
+            }
+        }
+        if($proxy)
+        {
+            //Need to proxy aspect
+            $obj = new ProxyClass($obj);
         }
 
         //Cache Class

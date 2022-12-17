@@ -184,17 +184,12 @@ class Route
         return $this->routes[$path];
     }
 
-    public function non_static(mixed $class_name):mixed
-    {
-        return new $class_name();
-    }
-
     /**
      * @param string $path
      * @param array $closure_array
      * @return void
      */
-    public function register(string $path,array $closure_array,array $before_middlewares = [],array $after_middlewares = []):void
+    public function register(string $path,array $closure_array,array $before_middlewares = []):void
     {
         $path_length = strlen($path);
         if(isset($this->routes[$path]))
@@ -204,8 +199,7 @@ class Route
         }
         $this->routes[$path] = [
             "callback" => $closure_array,
-            "before_middlewares" => $before_middlewares,
-            "after_middlewares" => $after_middlewares
+            "before_middlewares" => $before_middlewares
         ];
         $this->routes_path_set[$path] = $path_length;
     }

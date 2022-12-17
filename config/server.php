@@ -1,7 +1,7 @@
 <?php
 
 return  [
-    "debug_mode" => true,
+    "debug_mode" => false,
     "worker_num" => swoole_cpu_num(),
     "listen_host" => "0.0.0.0",
     "listen_port" => 9502,
@@ -12,9 +12,9 @@ return  [
             "namespace" => "Watish\WatishWEB\Controller",
             "deep" => true,
         ],
-        "attribute" => [
-            "dir" => "/src/Attribute/",
-            "namespace" => "Watish\WatishWEB\Attribute",
+        "aspect" => [
+            "dir" => "/src/Aspect/",
+            "namespace" => "Watish\WatishWEB\Aspect",
             "deep" => true
         ],
         "middleware" => [

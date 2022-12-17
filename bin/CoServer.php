@@ -54,6 +54,11 @@ $redisPool = RedisPoolConstructor::init();
 //Init ClassLoader and Inject
 ClassLoaderConstructor::init();
 
+$controllerLoader = ClassLoaderConstructor::getClassLoader("controller");
+$attrLoader = new \Watish\Components\Utils\AttributeLoader\AttributeLoader($controllerLoader->getClasses());
+$res = $attrLoader->getMethodAttributes(\Watish\Components\Attribute\Aspect::class);
+Logger::debug($res);
+
 //Init Commando
 CommandConstructor::init();
 CommandConstructor::autoRegister();
@@ -140,7 +145,6 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
         $closure_array = $route->get_path_closure($real_path);
         $closure = $closure_array["callback"];
         $before_middlewares = $closure_array["before_middlewares"];
-        $after_middlewares = $closure_array["after_middlewares"];
         $global_middlewares = $route->get_global_middlewares();
         $context->setServ($server);
 
@@ -209,23 +213,6 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
             return;
         }
 
-        $context->Set("Output",$res ?? null);
-
-        //After Middleware
-        if(count($after_middlewares) > 0)
-        {
-            Logger::debug("AfterMiddleware...");
-            foreach ($after_middlewares as $after_middleware)
-            {
-                try {
-                    call_user_func_array([ClassInjector::getInjectedInstance($after_middleware),"handle"],[&$context]);
-                }catch (Exception $e)
-                {
-                    WoopsConstructor::handle($e,$context,"AfterMiddleware");
-                    return;
-                }
-            }
-        }
         $context->reset();
     });
     //Watching Process By Single

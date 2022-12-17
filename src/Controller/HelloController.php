@@ -3,12 +3,14 @@
 namespace Watish\WatishWEB\Controller;
 
 use Swoole\Coroutine;
+use Watish\Components\Attribute\Aspect;
 use Watish\Components\Attribute\Inject;
 use Watish\Components\Attribute\Path;
 use Watish\Components\Attribute\Prefix;
 use Watish\Components\Includes\Context;
 use Watish\Components\Utils\Logger;
 use Watish\MyWebsocket\Middleware\TokenValid;
+use Watish\WatishWEB\Aspect\TestAspect;
 use Watish\WatishWEB\Service\AuthService;
 use Watish\WatishWEB\Service\TestService;
 
@@ -22,53 +24,14 @@ class HelloController
     #[Inject(AuthService::class)]
     public AuthService $authService;
 
-    #[Path("")]
+    #[Path("/")]
+    #[Aspect(TestAspect::class)]
     public function index(Context $context): void
     {
-        $request = $context->getRequest();
-        $response = $context->getResponse();
-        $database = $context->Database();
-        //Upgrade To WS
-        $response->upgrade();
-        $context->AsyncTask(function () {
-            $this->index_process("Hello , Async Task");
-        });
-        $response->push("Hello From Main".time());
-
-        Coroutine::create(function () use ($response, $context) {
-            $response->push("Hello From Coroutine1");
-            $Key = "public_chat_channel";
-            while (1) {
-                $response->push("Hello From Coroutine1 ".time());
-                $context->globalSet_PushAll($Key, json_encode([
-                    "type" => "system",
-                    "msg" => "Hello World"
-                ]));
-                Coroutine::sleep(5);
-            }
-        });
-
-        while (1) {
-            $response->push("Coroutine2 Receive Frame");
-            $frame = $response->recv();
-            if ($frame->isClosed()) {
-                Logger::info("Closed!");
-                $response->close();
-                $context->abort();
-                break;
-            }
-            Logger::info("Received!");
-            if ($frame->data == "pool") {
-                $response->push(json_encode([
-                    "Ok" => true,
-                ]));
-            }
-            $response->push(json_encode([
-                "Ok" => true,
-                "Msg" => $frame->data
-            ]));
-        }
-        return;
+        Logger::debug(111);
+        $context->json([
+            "msg" => "Hello"
+        ]);
     }
 
     #[Path("/async_task")]
