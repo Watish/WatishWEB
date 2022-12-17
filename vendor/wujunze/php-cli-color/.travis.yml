@@ -1,0 +1,21 @@
+language: php
+
+php:
+  - 5.6
+  - 7.0
+  - 7.1
+
+before_script:
+  - composer self-update
+  - composer install --prefer-source --no-interaction --dev
+  - ./vendor/bin/phplint
+
+script:
+  - ./vendor/bin/phpunit --coverage-clover=coverage.xml
+
+after_success:
+  - export CODECOV_TOKEN="ecbc8fbc-ad66-483d-82f9-266f46626dbf"
+  - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+   webhooks: https://oapi.dingtalk.com/robot/send?access_token=6b2de8bf5dcea2c617b05610e213d1cb0810512a24703e7dc0de77c39c5c4a48

@@ -1,0 +1,35 @@
+{
+    "name": "watish/watishweb",
+    "description": "My First Framework For Web",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Watish\\WatishWEB\\": "src/",
+            "Watish\\Components\\" : "opt/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Watish"
+        }
+    ],
+    "require": {
+        "mix/vega": "^3.0",
+      "ext-mbstring": "*",
+        "wujunze/php-cli-color": "^2.4",
+        "predis/predis": "^2.0",
+        "cakephp/validation": "^4.4",
+        "illuminate/database": "^9.43",
+      "ext-sockets": "*",
+        "opis/closure": "^3.6",
+        "league/flysystem": "^3.0",
+      "ext-pdo": "*",
+        "dragonmantank/cron-expression": "^3.3",
+        "league/climate": "^3.8",
+        "filp/whoops": "^2.14",
+        "ulrichsg/getopt-php": "^4.0"
+    },
+    "require-dev": {
+        "eaglewu/swoole-ide-helper": "dev-master"
+    }
+}

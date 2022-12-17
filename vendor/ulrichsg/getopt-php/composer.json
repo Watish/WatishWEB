@@ -1,0 +1,41 @@
+{
+    "name": "ulrichsg/getopt-php",
+    "type": "library",
+    "description": "Command line arguments parser for PHP 7.1 and above",
+    "homepage": "http://getopt-php.github.io/getopt-php",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ulrich Schmidt-Goertz",
+            "email": "ulrich@schmidt-goertz.de"
+        },
+        {
+            "name": "Thomas Flori",
+            "email": "thflori@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.1 || ^8.0",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*",
+        "tflori/phpunit-printer": "*",
+        "squizlabs/php_codesniffer": "^3.5.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "GetOpt\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "GetOpt\\Test\\": "test"
+        }
+    },
+    "scripts": {
+        "code-style": "vendor/bin/phpcs --standard=PSR2 src && vendor/bin/phpcs --standard=PSR2 test",
+        "test": "vendor/bin/phpunit -c phpunit.xml",
+        "coverage": "vendor/bin/phpunit -c phpunit.xml --coverage-clover=build/coverage.xml --coverage-html=build/coverage --coverage-text"
+    }
+}
