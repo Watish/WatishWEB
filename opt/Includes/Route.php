@@ -13,19 +13,13 @@ use Watish\Components\Utils\Table;
 
 class Route
 {
-    /**
-     * @var array
-     * Set : "path" => [Controller:class,'Method']
-     */
     private array $routes;
     private array $global_middlewares;
-    private array $routes_path_set;
 
     public function __construct()
     {
         $this->routes = [];
         $this->global_middlewares = [];
-        $this->routes_path_set = [];
     }
 
     public function auto_register_route() :void
@@ -89,19 +83,23 @@ class Route
             {
                 $method_name = $method_arr["name"];
                 $real_path = $method_arr["params"][0];
+                $allow_methods = $method_arr["params"][1] ?? [];
                 if($classSet[$class]["has_prefix"])
                 {
                     $prefix = $classSet[$class]["prefix"];
                     $real_path = $prefix.$real_path;
                 }
+                //Join to route list
                 $route_list[] = [
                     "class" => $class,
                     "method" => $method_name,
-                    "path" => $real_path
+                    "path" => $real_path,
+                    "allow" => $allow_methods
                 ];
             }
         }
         $table_array = [];
+        //foreach route list to register route
         foreach ($route_list as $item)
         {
             $class = $item["class"];
@@ -137,9 +135,10 @@ class Route
                 "path" =>  $path,
                 "class" => $class,
                 "method" => $method,
-                "middlewares" => implode(",",$middlewares)
+                "middlewares" => implode(",",$middlewares),
+                "allow" => !$item["allow"] ? "Any" : implode(',',$item["allow"])
             ];
-            $this->register($path,[new $class(),$method],$middlewares);
+            $this->register($path,[new $class(),$method],$middlewares,$item["allow"]);
         }
         if(Table::get("server_config")["debug_mode"])
         {
@@ -163,17 +162,6 @@ class Route
         }
     }
 
-    public function get_routes() :array
-    {
-        arsort($this->routes_path_set);
-        $resArray = [];
-        foreach ($this->routes_path_set as $path => $path_length)
-        {
-            $resArray[$path] = $this->routes[$path];
-        }
-        return $resArray;
-    }
-
     public function path_exists(string $path) :bool
     {
         return isset($this->routes[$path]);
@@ -189,9 +177,8 @@ class Route
      * @param array $closure_array
      * @return void
      */
-    public function register(string $path,array $closure_array,array $before_middlewares = []):void
+    public function register(string $path,array $closure_array,array $before_middlewares = [],array $methods = []):void
     {
-        $path_length = strlen($path);
         if(isset($this->routes[$path]))
         {
             Logger::error("Path Duplicated:{$path}","Route");
@@ -199,9 +186,9 @@ class Route
         }
         $this->routes[$path] = [
             "callback" => $closure_array,
-            "before_middlewares" => $before_middlewares
+            "before_middlewares" => $before_middlewares,
+            "methods" => $methods
         ];
-        $this->routes_path_set[$path] = $path_length;
     }
 
     public function register_global_middleware(mixed $class_name) :void

@@ -4,6 +4,7 @@ namespace Watish\Components\Utils\Injector;
 
 use SebastianBergmann\Diff\Exception;
 use Watish\Components\Attribute\Aspect;
+use Watish\Components\Attribute\Async;
 use Watish\Components\Attribute\Inject;
 use Watish\Components\Constructor\ClassLoaderConstructor;
 use Watish\Components\Utils\Cache\ClassCache;
@@ -14,6 +15,8 @@ class ClassInjector
 
     public static array $deep_class_pool = [];
     public static array $deep_class_count = [];
+
+    private static array $proxy_class_pool = [];
 
     public static function init(): void
     {
@@ -50,9 +53,9 @@ class ClassInjector
 
         $properties = $reflectionClass->getProperties();
         $obj = new ($className)();
-
         foreach ($properties as $property)
         {
+
             $attributes = $property->getAttributes(Inject::class);
             $property_name = $property->getName();
             if(count($attributes) <= 0)
@@ -60,25 +63,19 @@ class ClassInjector
                 //Not need to inject
                 continue;
             }
+
             $inject_class_name = $attributes[0]->getArguments()[0];
             $property->setValue($obj,self::deep_inject_to_instance($inject_class_name));
             Logger::debug("{$class_name}:{$property_name} Injected by {$inject_class_name}","Injector");
         }
 
-        $methods = $reflectionClass->getMethods();
-        $proxy = false;
-        foreach ($methods as $method)
-        {
-            $methodAttributes = $method->getAttributes(Aspect::class);
-            if(count($methodAttributes) > 0)
-            {
-                $proxy = true;
-                break;
-            }
-        }
+        $proxy = self::need_proxy($reflectionClass->getMethods(),[
+            Aspect::class,
+            Async::class
+        ]);
+
         if($proxy)
         {
-            //Need to proxy aspect
             $obj = new ProxyClass($obj);
         }
 
@@ -130,7 +127,39 @@ class ClassInjector
             $inject_class_name = $attributes[0]->getArguments()[0];
             $property->setValue($obj,self::deep_inject_to_instance($inject_class_name));
         }
+
+        $proxy = self::need_proxy($reflectionClass->getMethods(),[
+           Aspect::class,
+           Async::class
+        ]);
+
+        if($proxy)
+        {
+            $obj = new ProxyClass($obj);
+            self::$proxy_class_pool[$className] = $obj;
+        }
         ClassCache::set($className,$obj);
         return $obj;
+    }
+
+    /**
+     * @param \ReflectionMethod[] $methods
+     * @return void
+     */
+    private static function need_proxy(array $methods,array $attributeClassList) :bool
+    {
+        foreach ($methods as $method)
+        {
+
+            foreach ($attributeClassList as $attributeClass)
+            {
+                $attributes = $method->getAttributes($attributeClass);
+                if(count($attributes) > 0)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

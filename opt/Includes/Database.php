@@ -4,15 +4,16 @@ namespace Watish\Components\Includes;
 
 use Illuminate\Database\ConnectionInterface;
 use Predis\Client;
-use Watish\Components\Struct\Database;
+use Swoole\Coroutine;
 use Watish\Components\Utils\ConnectionPool;
 
-class Container
+class Database
 {
     private static ConnectionPool $pdoPool;
-    private static array $data;
     private static ConnectionPool $redisPool;
     private static ConnectionInterface $sqlConnection;
+
+    private static $clientSet = [];
 
     public static function mysql() :Database
     {
@@ -26,7 +27,10 @@ class Container
 
     public static function redis() :Client
     {
-        return self::$redisPool->get();
+        $cid = Coroutine::getuid();
+        $client = self::$redisPool->get();
+        self::$clientSet["redis"][$cid] = $client;
+        return $client;
     }
 
     public static function putRedis(Client $client): void
@@ -36,7 +40,10 @@ class Container
 
     public static function getPdo() :\PDO
     {
-        return self::$pdoPool->get();
+        $cid = Coroutine::getuid();
+        $client = self::$pdoPool->get();
+        self::$clientSet["pdo"][$cid] = $client;
+        return $client;
     }
 
     /**
@@ -61,5 +68,22 @@ class Container
     public static function setSqlConnection(ConnectionInterface $sqlConnection): void
     {
         self::$sqlConnection = $sqlConnection;
+    }
+    
+    public static function reset(): void
+    {
+        $cid = Coroutine::getuid();
+        if(isset(self::$clientSet["pdo"][$cid]))
+        {
+            $client = self::$clientSet["pdo"][$cid];
+            self::$pdoPool->put($client);
+            unset(self::$clientSet["pdo"][$cid]);
+        }
+        if(isset(self::$clientSet["redis"][$cid]))
+        {
+            $client = self::$clientSet["redis"][$cid];
+            self::$redisPool->put($client);
+            unset(self::$clientSet["redis"][$cid]);
+        }
     }
 }

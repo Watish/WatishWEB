@@ -2,7 +2,7 @@
 
 namespace Watish\WatishWEB\Service;
 
-use Watish\Components\Struct\Database;
+use Watish\Components\Struct\DatabaseExtend;
 
 class UserService
 {
@@ -13,7 +13,7 @@ class UserService
         $this->baseService = new BaseService();
     }
 
-    public function get_user_info_by_email(string $email, Database $database): array|null
+    public function get_user_info_by_email(string $email, DatabaseExtend $database): array|null
     {
         $resObj = $database->from("user")->where("user_email", $email)->first();
         if (!$resObj) {

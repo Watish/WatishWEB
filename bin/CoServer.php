@@ -5,6 +5,7 @@ use Swoole\Coroutine\Http\Server;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\Lock;
+use Watish\Components\Constructor\AsyncTaskConstructor;
 use Watish\Components\Constructor\ClassLoaderConstructor;
 use Watish\Components\Constructor\CommandConstructor;
 use Watish\Components\Constructor\LocalFilesystemConstructor;
@@ -13,7 +14,7 @@ use Watish\Components\Constructor\ProcessConstructor;
 use Watish\Components\Constructor\RedisPoolConstructor;
 use Watish\Components\Constructor\RouteConstructor;
 use Watish\Components\Constructor\WoopsConstructor;
-use Watish\Components\Includes\Container;
+use Watish\Components\Includes\Database;
 use Watish\Components\Includes\Context;
 use Watish\Components\Utils\Injector\ClassInjector;
 use Watish\Components\Utils\Logger;
@@ -33,7 +34,7 @@ LocalFilesystemConstructor::init();
 $server_config = require_once BASE_DIR .'/config/server.php';
 define("SERVER_CONFIG", $server_config);
 
-//Database Config
+//DatabaseExtend Config
 $database_config = require_once BASE_DIR . "/config/database.php";
 define("DATABASE_CONFIG",$database_config);
 
@@ -88,20 +89,23 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
     //Init Injector and preCache all class loader
     ClassInjector::init();
 
-    //Init Database in worker process
+    //Init DatabaseExtend in worker process
     PdoPoolConstructor::init();
     RedisPoolConstructor::init();
 
-    //Init Container
+    //Init DatabaseExtend
     if(DATABASE_CONFIG["mysql"]["enable"])
     {
-        Container::setPdoPool(PdoPoolConstructor::getPdoPool());
-        Container::setSqlConnection(PdoPoolConstructor::getSqlConnection());
+        Database::setPdoPool(PdoPoolConstructor::getPdoPool());
+        Database::setSqlConnection(PdoPoolConstructor::getSqlConnection());
     }
     if(DATABASE_CONFIG["redis"]["enable"])
     {
-        Container::setRedisPool(RedisPoolConstructor::getRedisPool());
+        Database::setRedisPool(RedisPoolConstructor::getRedisPool());
     }
+
+    //Init AsyncTask
+    AsyncTaskConstructor::init($context->getProcess("Task"));
 
     //get worker process
     $worker_process = $pool->getProcess();
@@ -123,8 +127,9 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
     //Handle Request
     $server->handle('/',function (Request $request, Response $ws) use (&$context,$route,$server,$workerId){
         Logger::debug("Worker #{$workerId}");
-        Logger::debug("[Route]:".$request->server["request_uri"]);
+        Logger::debug($request->server["request_uri"],"Request");
         $real_path = $request->server["request_uri"];
+        $request_method = $request->getMethod();
         $context->Set("Request",$request);
         $context->Set("Response",$ws);
         if(!$route->path_exists($real_path))
@@ -132,14 +137,26 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
             //404
             $context->json([
                 "Ok" => false,
-                "Msg" => "404"
-            ]);
+                "Msg" => "Page Not Found"
+            ],404);
             $context->abort();
+            $context->reset();
             return;
         }
         $closure_array = $route->get_path_closure($real_path);
         $closure = $closure_array["callback"];
         $before_middlewares = $closure_array["before_middlewares"];
+        $allow_methods = $closure_array["methods"];
+        if($allow_methods and !in_array($request_method,$allow_methods))
+        {
+            $context->json([
+                "Ok" => false,
+                "Msg" => "Method Not Allowed"
+            ],403);
+            $context->abort();
+            $context->reset();
+            return;
+        }
         $global_middlewares = $route->get_global_middlewares();
         $context->setServ($server);
 
@@ -193,7 +210,19 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
         //Controller
         Logger::debug("Controller...");
         try {
-            $res = call_user_func_array([ClassInjector::getInjectedInstance($closure[0]),$closure[1]],[&$context]);
+            $result = call_user_func_array([ClassInjector::getInjectedInstance($closure[0]),$closure[1]],[&$context]);
+            if(isset($result))
+            {
+                if(is_string($result))
+                {
+                    $context->html($result);
+                }elseif(is_array($result))
+                {
+                    $context->json($result);
+                }else{
+                    $context->html((string)$result);
+                }
+            }
         }catch (Throwable $e)
         {
             WoopsConstructor::handle($e,$context,"Controller");

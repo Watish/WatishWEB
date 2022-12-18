@@ -8,9 +8,11 @@ use Attribute;
 class Path
 {
     public string $path;
+    public array $methods;
 
-    public function __construct(string $path)
+    public function __construct(string $path,array $methods = [])
     {
         $this->path = $path;
+        $this->methods = $methods;
     }
 }

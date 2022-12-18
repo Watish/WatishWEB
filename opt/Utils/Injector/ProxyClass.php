@@ -3,7 +3,8 @@
 namespace Watish\Components\Utils\Injector;
 
 use Watish\Components\Attribute\Aspect;
-use Watish\Components\Attribute\Inject;
+use Watish\Components\Attribute\Async;
+use Watish\Components\Constructor\AsyncTaskConstructor;
 use Watish\Components\Utils\Aspect\AspectContainer;
 use Watish\Components\Utils\Cache\ProxyCache;
 use Watish\Components\Utils\Logger;
@@ -38,7 +39,6 @@ class ProxyClass
         foreach ($methods as $method)
         {
             $method_name = $method->getName();
-            $method_return_type = $method->getReturnType();
             $method_attributes = $method->getAttributes(Aspect::class);
             if(count($method_attributes) <= 0)
             {
@@ -49,7 +49,25 @@ class ProxyClass
             {
                 $listArray[] = $method_attribute->getArguments()[0];
             }
-            $proxy_data[$method_name] = $listArray;
+            $proxy_data["aspect"][$method_name] = $listArray;
+        }
+        foreach ($methods as $method)
+        {
+            $method_name = $method->getName();
+            $method_attributes = $method->getAttributes(Async::class);
+            if(count($method_attributes) <= 0)
+            {
+                continue;
+            }
+            $listArray = [];
+            foreach ($method_attributes as $method_attribute)
+            {
+                if(isset($method_attribute->getArguments()[0]))
+                {
+                    $listArray[] = $method_attribute->getArguments()[0];
+                }
+            }
+            $proxy_data["async"][$method_name] = $listArray;
         }
         $this->proxy_data = $proxy_data;
         ProxyCache::set($class_name,$proxy_data);
@@ -59,7 +77,7 @@ class ProxyClass
     public function __call(string $name, array $arguments)
     {
         Logger::debug("Be Called $name","ProxyClass");
-        if(!isset($this->proxy_data[$name]))
+        if(!isset($this->proxy_data["aspect"][$name]))
         {
             try{
                 call_user_func_array([$this->class,$name],$arguments);
@@ -68,7 +86,7 @@ class ProxyClass
                 Logger::exception($exception);
             }
         }
-        foreach ($this->proxy_data[$name] as $list_aspect_class)
+        foreach ($this->proxy_data["aspect"][$name] as $list_aspect_class)
         {
             $result = (new $list_aspect_class)->handle($arguments);
             if(!AspectContainer::getStatus())
@@ -76,6 +94,14 @@ class ProxyClass
                 return $result;
             }
         }
-        return call_user_func_array([$this->class,$name],$arguments);
+        if(isset($this->proxy_data["async"][$name]))
+        {
+            Logger::debug("Async Call Method: $name","ProxyClass");
+            AsyncTaskConstructor::make(function () use ($name,$arguments){
+                call_user_func_array([$this->class,$name],$arguments);
+            });
+        }else{
+            return call_user_func_array([$this->class,$name],$arguments);
+        }
     }
 }

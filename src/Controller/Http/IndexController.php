@@ -6,20 +6,22 @@ use Watish\Components\Attribute\Inject;
 use Watish\Components\Attribute\Path;
 use Watish\Components\Attribute\Prefix;
 use Watish\Components\Includes\Context;
+use Watish\Components\Utils\Table;
 use Watish\WatishWEB\Service\TestService;
 
 #[Prefix("/")]
 class IndexController
 {
     #[Inject(TestService::class)]
-    private TestService $testService;
+    private TestService  $testService;
 
-    #[Path("")]
-    public function index(Context $context): void
+    #[Path("",['GET','POST'])]
+    public function index(Context $context): array
     {
-        $context->json([
+        $request = $context->getRequest();
+        return [
             "Ok" => true,
-            "Msg" => $this->testService->sayHello()
-        ]);
+            "Msg" => $request->getMethod()
+        ];
     }
 }

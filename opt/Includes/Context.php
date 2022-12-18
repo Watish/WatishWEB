@@ -146,11 +146,6 @@ class Context
         $this->pdoPool = $pdoPool;
     }
 
-    public function Database(): \Watish\Components\Struct\Database
-    {
-        return Container::mysql();
-    }
-
     public function abort():void
     {
         $cid = $this->getCoUid();
@@ -314,7 +309,7 @@ class Context
 
     private function getPdo() :\PDO
     {
-        return Container::getPdo();
+        return Database::getPdo();
     }
 
     /**
@@ -328,7 +323,7 @@ class Context
     public function getRedis() :Client
     {
         $cid = $this->getCoUid();
-        $client = Container::redis();
+        $client = Database::redis();
         $this->set[$cid]["Redis"] = $client;
         return $client;
     }
@@ -484,19 +479,8 @@ class Context
     public function reset():void
     {
         $cid = $this->getCoUid();
-        if(isset($this->set[$cid]["PDO"]))
-        {
-            $pdo = $this->set[$cid]["PDO"];
-            Logger::debug("Recycle PDO","Context");
-            Container::putPdo($pdo);
-        }
-        if(isset($this->set[$cid]["Redis"]))
-        {
-            $redis = $this->set[$cid]["Redis"];
-            Logger::debug("Recycle Redis","Context");
-            Container::putRedis($redis);
-        }
         unset($this->set[$cid]);
+        Database::reset();
         Logger::debug("Cid {$cid} Reset");
     }
 }

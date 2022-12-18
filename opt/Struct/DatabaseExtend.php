@@ -10,7 +10,7 @@ use Illuminate\Database\Query\Processors\Processor;
 use Illuminate\Support\Arr;
 use Watish\Components\Utils\Logger;
 
-class Database extends Builder
+class DatabaseExtend extends Builder
 {
     private $pdo;
 
@@ -30,19 +30,19 @@ class Database extends Builder
         return $statement->rowCount();
     }
 
-    public function table(string $table,$as = null): Database
+    public function table(string $table,$as = null): DatabaseExtend
     {
         return parent::from($table,$as);
     }
 
-    public function clone(): Database
+    public function clone(): DatabaseExtend
     {
         return clone $this;
     }
 
-    public function newQuery(): Database
+    public function newQuery(): DatabaseExtend
     {
-        return new Database($this->connection,$this->grammar,$this->processor,$this->pdo);
+        return new DatabaseExtend($this->connection,$this->grammar,$this->processor,$this->pdo);
     }
 
     public function insert(array $values): bool
@@ -69,13 +69,13 @@ class Database extends Builder
         return $statement->rowCount();
     }
 
-    public function useWritePdo(): Database|static
+    public function useWritePdo(): DatabaseExtend|static
     {
         $this->useWritePdo = true;
         return $this;
     }
 
-    public function lock($value = true): Database|static
+    public function lock($value = true): DatabaseExtend|static
     {
         $this->lock = $value;
 
@@ -94,12 +94,12 @@ class Database extends Builder
         return $statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function lockForUpdate(): Database|static
+    public function lockForUpdate(): DatabaseExtend|static
     {
         return $this->lock(true);
     }
 
-    public function sharedLock(): Database|static
+    public function sharedLock(): DatabaseExtend|static
     {
         return $this->lock(false);
     }

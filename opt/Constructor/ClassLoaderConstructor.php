@@ -20,13 +20,28 @@ class ClassLoaderConstructor
         }
         $server_config = Table::get("server_config");
         $class_loader_list = $server_config["class_loader"];
+        $fileSystem = LocalFilesystemConstructor::getFilesystem();
+        try{
+            if($fileSystem->directoryExists("/storage/Framework/Runtime/"))
+            {
+                $fileSystem->deleteDirectory("/storage/Framework/Runtime/");
+                $fileSystem->createDirectory("/storage/Framework/Runtime/");
+            }else{
+                $fileSystem->createDirectory("/storage/Framework/Runtime/");
+            }
+        }catch (\Exception $exception)
+        {
+            Logger::exception($exception);
+        }
+
         foreach ($class_loader_list as $name => $item)
         {
             $dir = $item["dir"];
             $namespace = $item["namespace"];
             $deep = $item["deep"];
+            $proxy = $item["proxy"] ?? false;
             try {
-                self::$class_loader_set[$name] = new ClassLoader($dir,$namespace,$deep);
+                self::$class_loader_set[$name] = new ClassLoader($dir,$namespace,$deep,$proxy);
             }catch (Exception $exception)
             {
                 Logger::error($exception->getMessage());

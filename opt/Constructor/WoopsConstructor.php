@@ -47,7 +47,7 @@ class WoopsConstructor
             $context->json(json_decode($json),500);
         }
         $context->abort();
-        $context->reset();;
+        $context->reset();
     }
 
 

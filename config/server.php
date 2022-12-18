@@ -11,31 +11,33 @@ return  [
             "dir" => "/src/Controller/",
             "namespace" => "Watish\WatishWEB\Controller",
             "deep" => true,
+            "proxy" => true
         ],
         "aspect" => [
             "dir" => "/src/Aspect/",
             "namespace" => "Watish\WatishWEB\Aspect",
-            "deep" => true
+            "deep" => true,
         ],
         "middleware" => [
             "dir" => "/src/Middleware/",
             "namespace" => "Watish\WatishWEB\Middleware",
-            "deep" => true
+            "deep" => true,
         ],
         "service" => [
             "dir" => "/src/Service/",
             "namespace" => "Watish\WatishWEB\Service",
-            "deep" => true
+            "deep" => true,
+            'proxy' => true
         ],
         "crontab" => [
             "dir" => "/src/Task/",
             "namespace" => "Watish\WatishWEB\Task",
-            "deep" => true
+            "deep" => true,
         ],
         "command" => [
             "dir" => "/src/Command/",
             "namespace" => "Watish\WatishWEB\Command",
-            "deep" => true
+            "deep" => true,
         ]
     ],
     /**

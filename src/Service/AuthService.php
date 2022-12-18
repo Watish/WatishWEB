@@ -2,21 +2,21 @@
 
 namespace Watish\WatishWEB\Service;
 
-use Watish\Components\Struct\Database;
+use Watish\Components\Struct\DatabaseExtend;
 
 class AuthService
 {
-    public function check_user_exists_by_email(string $email, Database $database): bool
+    public function check_user_exists_by_email(string $email, DatabaseExtend $database): bool
     {
         return $database->from("user")->where("user_email", $email)->exists();
     }
 
-    public function check_user_exists_by_name(string $username, Database $database): bool
+    public function check_user_exists_by_name(string $username, DatabaseExtend $database): bool
     {
         return $database->from("user")->where("user_name", $username)->exists();
     }
 
-    public function generate_token(int $user_id, Database $database): string
+    public function generate_token(int $user_id, DatabaseExtend $database): string
     {
         $database = $database->clone();
         $key = uniqid().rand(1000, 9999).time().$user_id;
@@ -26,7 +26,7 @@ class AuthService
         return $token;
     }
 
-    public function check_token_valid(string $token, Database $database): bool
+    public function check_token_valid(string $token, DatabaseExtend $database): bool
     {
         return $database->table("user")->where("token", $token)->exists();
     }

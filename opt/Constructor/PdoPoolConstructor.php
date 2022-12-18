@@ -4,7 +4,7 @@ namespace Watish\Components\Constructor;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Connection;
-use Watish\Components\Includes\Container;
+use Watish\Components\Includes\Database;
 use Watish\Components\Utils\ConnectionPool;
 use Watish\Components\Utils\Table;
 
@@ -38,8 +38,8 @@ class PdoPoolConstructor
             self::$capsule = $capsule;
             self::$sqlConnection = $sqlConnection;
             self::$pdoPool = $pdoPool;
-            Container::setSqlConnection($sqlConnection);
-            Container::setPdoPool($pdoPool);
+            Database::setSqlConnection($sqlConnection);
+            Database::setPdoPool($pdoPool);
         }
     }
 
