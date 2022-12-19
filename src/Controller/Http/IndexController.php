@@ -12,16 +12,13 @@ use Watish\WatishWEB\Service\TestService;
 #[Prefix("/")]
 class IndexController
 {
-    #[Inject(TestService::class)]
-    private TestService  $testService;
-
-    #[Path("",['GET','POST'])]
+    #[Path("")]
     public function index(Context $context): array
     {
         $request = $context->getRequest();
         return [
-            "Ok" => true,
-            "Msg" => $request->getMethod()
+            "Method" => $request->getMethod(),
+            "Params" => $request->all()
         ];
     }
 }

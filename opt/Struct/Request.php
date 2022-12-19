@@ -40,6 +40,35 @@ class Request
         return $this->get;
     }
 
+    public function PostAll() :array
+    {
+        if(!$this->post)
+        {
+            return [];
+        }
+        return $this->post;
+    }
+
+    public function all() :array
+    {
+        $res = [];
+        if($this->get)
+        {
+            foreach ($this->get as $param => $value)
+            {
+                $res[$param] = $value;
+            }
+        }
+        if($this->post)
+        {
+            foreach ($this->post as $param => $value)
+            {
+                $res[$param] = $value;
+            }
+        }
+        return $res;
+    }
+
     public function getData():string
     {
         return $this->request->getData();
