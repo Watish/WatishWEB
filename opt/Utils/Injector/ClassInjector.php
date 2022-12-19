@@ -55,7 +55,6 @@ class ClassInjector
         $obj = new ($className)();
         foreach ($properties as $property)
         {
-
             $attributes = $property->getAttributes(Inject::class);
             $property_name = $property->getName();
             if(count($attributes) <= 0)
@@ -89,8 +88,8 @@ class ClassInjector
         if(!isset(self::$deep_class_count[$className]))
         {
             self::$deep_class_count[$className] = 1;
-            self::$deep_class_pool[$className] = new $className();
-        }else{
+        }
+        else{
             self::$deep_class_count[$className] ++;
             if(self::$deep_class_count[$className] >= 2)
             {
@@ -104,6 +103,10 @@ class ClassInjector
 
         try{
             $reflectionClass = new \ReflectionClass($className);
+            $proxy = self::need_proxy($reflectionClass->getMethods(),[
+                Aspect::class,
+                Async::class
+            ]);
         }catch (Exception $exception)
         {
             Logger::exception($exception);
@@ -112,9 +115,7 @@ class ClassInjector
 
         $obj = new $className();
 
-        //Put Dependency A First
-        self::$deep_class_pool[$className] = $obj;
-
+        //Inject First
         $properties = $reflectionClass->getProperties();
         foreach ($properties as $property)
         {
@@ -128,23 +129,21 @@ class ClassInjector
             $property->setValue($obj,self::deep_inject_to_instance($inject_class_name));
         }
 
-        $proxy = self::need_proxy($reflectionClass->getMethods(),[
-           Aspect::class,
-           Async::class
-        ]);
-
+        //Then Proxy
         if($proxy)
         {
             $obj = new ProxyClass($obj);
-            self::$proxy_class_pool[$className] = $obj;
         }
+        //Put class finally
+        self::$deep_class_pool[$className] = $obj;
+
         ClassCache::set($className,$obj);
         return $obj;
     }
 
     /**
      * @param \ReflectionMethod[] $methods
-     * @return void
+     * @return bool
      */
     private static function need_proxy(array $methods,array $attributeClassList) :bool
     {
