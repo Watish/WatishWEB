@@ -35,7 +35,10 @@ class ProxyClass
 
         $methods = $reflectionClass->getMethods();
 
-        $proxy_data = [];
+        $proxy_data = [
+            "aspect" => [],
+            "async" => []
+        ];
         foreach ($methods as $method)
         {
             $method_name = $method->getName();
@@ -77,31 +80,39 @@ class ProxyClass
     public function __call(string $name, array $arguments)
     {
         Logger::debug("Be Called $name","ProxyClass");
-        if(!isset($this->proxy_data["aspect"][$name]))
+        //Aspect
+        if(isset($this->proxy_data["aspect"][$name]))
         {
-            try{
-                call_user_func_array([$this->class,$name],$arguments);
-            }catch (\Exception $exception)
+            foreach ($this->proxy_data["aspect"][$name] as $list_aspect_class)
             {
-                Logger::exception($exception);
+                try {
+                    $result = (new $list_aspect_class)->handle($arguments);
+                    if(!AspectContainer::getStatus())
+                    {
+                        return $result;
+                    }
+                }catch (\Exception $exception)
+                {
+                    Logger::exception($exception);
+                }
             }
         }
-        foreach ($this->proxy_data["aspect"][$name] as $list_aspect_class)
-        {
-            $result = (new $list_aspect_class)->handle($arguments);
-            if(!AspectContainer::getStatus())
-            {
-                return $result;
-            }
-        }
+        //Async
         if(isset($this->proxy_data["async"][$name]))
         {
             Logger::debug("Async Call Method: $name","ProxyClass");
             AsyncTaskConstructor::make(function () use ($name,$arguments){
                 call_user_func_array([$this->class,$name],$arguments);
             });
-        }else{
-            return call_user_func_array([$this->class,$name],$arguments);
+            return 1;
         }
+        //Method
+        try{
+            $result = call_user_func_array([$this->class,$name],$arguments);
+        }catch (\Exception $exception)
+        {
+            Logger::exception($exception);
+        }
+        return $result;
     }
 }

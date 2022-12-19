@@ -25,6 +25,6 @@ git clone https://github.com/Watish/WatishWEB
 
 #### 使用Composer
 ```
-composer create-project watish/watishweb
+composer create-project watish/watishweb:dev-master
 ```
 
