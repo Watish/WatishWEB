@@ -5,6 +5,7 @@ namespace Watish\Components\Includes;
 use Illuminate\Database\ConnectionInterface;
 use Predis\Client;
 use Swoole\Coroutine;
+use Watish\Components\Struct\DatabaseExtend;
 use Watish\Components\Utils\ConnectionPool;
 
 class Database
@@ -15,9 +16,9 @@ class Database
 
     private static $clientSet = [];
 
-    public static function mysql() :Database
+    public static function mysql() : DatabaseExtend
     {
-        return new Database(self::$sqlConnection,null,null,self::getPdo());
+        return new DatabaseExtend(self::$sqlConnection,null,null,self::getPdo());
     }
 
     public static function putPdo(\PDO $pdo) :void
@@ -69,7 +70,7 @@ class Database
     {
         self::$sqlConnection = $sqlConnection;
     }
-    
+
     public static function reset(): void
     {
         $cid = Coroutine::getuid();

@@ -168,9 +168,9 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
                 Logger::debug("GlobalMiddleware...");
                 try {
                     call_user_func_array([ClassInjector::getInjectedInstance($global_middleware),"handle"],[&$context]);
-                }catch (Throwable $e)
+                }catch (Exception $exception)
                 {
-                    WoopsConstructor::handle($e,$context,"GlobalMiddleware");
+                    WoopsConstructor::handle($exception,$context,"GlobalMiddleware");
                     return;
                 }
             }
@@ -192,8 +192,8 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
                 Logger::debug("BeforeMiddleWare...");
                 try {
                     call_user_func_array([ClassInjector::getInjectedInstance($before_middleware),"handle"],[&$context]);
-                }catch (Throwable $e){
-                    WoopsConstructor::handle($e,$context,"BeforeMiddleWare");
+                }catch (Exception $exception){
+                    WoopsConstructor::handle($exception,$context,"BeforeMiddleWare");
                     return;
                 }
             }
@@ -223,9 +223,9 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
                     $context->html((string)$result);
                 }
             }
-        }catch (Throwable $e)
+        }catch (Exception $exception)
         {
-            WoopsConstructor::handle($e,$context,"Controller");
+            WoopsConstructor::handle($exception,$context,"Controller");
             return;
         }
 

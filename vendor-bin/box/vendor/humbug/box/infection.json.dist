@@ -1,0 +1,24 @@
+{
+    "$schema": "vendor-bin/infection/vendor/infection/infection/resources/schema.json",
+    "timeout": 10,
+    "source": {
+        "directories": [
+            "src"
+        ],
+        "excludes": [
+            "src/Compactor/Php.php"
+        ]
+    },
+    "logs": {
+        "text": "dist/infection-log.txt"
+    },
+    "mutators": {
+        "@default": true,
+        "global-ignoreSourceCodeByRegex": [
+            "Assert::.*"
+        ],
+        "IdenticalEqual": false,
+        "NotIdenticalNotEqual": false,
+        "PublicVisibility": false
+    }
+}
