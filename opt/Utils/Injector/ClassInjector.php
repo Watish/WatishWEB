@@ -143,6 +143,7 @@ class ClassInjector
 
     /**
      * @param \ReflectionMethod[] $methods
+     * @param \ReflectionAttribute[] $attributeClassList
      * @return bool
      */
     private static function need_proxy(array $methods,array $attributeClassList) :bool
