@@ -104,6 +104,10 @@ class ComposerStaticInitecb5d735297edb621178a3074ca6eb20
             'Cake\\Utility\\' => 13,
             'Cake\\Core\\' => 10,
         ),
+        'B' => 
+        array (
+            'Bamarni\\Composer\\Bin\\' => 21,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
@@ -293,6 +297,10 @@ class ComposerStaticInitecb5d735297edb621178a3074ca6eb20
         'Cake\\Core\\' => 
         array (
             0 => __DIR__ . '/..' . '/cakephp/core',
+        ),
+        'Bamarni\\Composer\\Bin\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/bamarni/composer-bin-plugin/src',
         ),
     );
 

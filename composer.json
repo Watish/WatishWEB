@@ -29,6 +29,12 @@
         "illuminate/validation": "^9.44"
     },
     "require-dev": {
-        "eaglewu/swoole-ide-helper": "dev-master"
+        "eaglewu/swoole-ide-helper": "dev-master",
+        "bamarni/composer-bin-plugin": "^1.8"
+    },
+    "config": {
+        "allow-plugins": {
+            "bamarni/composer-bin-plugin": true
+        }
     }
 }

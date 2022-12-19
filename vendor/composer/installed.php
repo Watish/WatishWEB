@@ -3,13 +3,22 @@
         'name' => 'watish/watishweb',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '02851f0677968acbd7fde0aa48200b81a484fc1a',
+        'reference' => '87fcc1c945ce5b61aa6698140181ad8a5665b415',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
         'dev' => true,
     ),
     'versions' => array(
+        'bamarni/composer-bin-plugin' => array(
+            'pretty_version' => '1.8.2',
+            'version' => '1.8.2.0',
+            'reference' => '92fd7b1e6e9cdae19b0d57369d8ad31a37b6a880',
+            'type' => 'composer-plugin',
+            'install_path' => __DIR__ . '/../bamarni/composer-bin-plugin',
+            'aliases' => array(),
+            'dev_requirement' => true,
+        ),
         'cakephp/core' => array(
             'pretty_version' => '4.4.8',
             'version' => '4.4.8.0',
@@ -471,7 +480,7 @@
         'watish/watishweb' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '02851f0677968acbd7fde0aa48200b81a484fc1a',
+            'reference' => '87fcc1c945ce5b61aa6698140181ad8a5665b415',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

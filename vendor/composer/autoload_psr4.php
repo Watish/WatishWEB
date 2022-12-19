@@ -52,4 +52,5 @@ return array(
     'Cake\\Validation\\' => array($vendorDir . '/cakephp/validation'),
     'Cake\\Utility\\' => array($vendorDir . '/cakephp/utility'),
     'Cake\\Core\\' => array($vendorDir . '/cakephp/core'),
+    'Bamarni\\Composer\\Bin\\' => array($vendorDir . '/bamarni/composer-bin-plugin/src'),
 );
