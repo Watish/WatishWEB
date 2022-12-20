@@ -2,6 +2,8 @@
 
 namespace Watish\Components\Struct;
 
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+
 /**
  * @Description Gracefully Using Swoole\Http\Request
  */
@@ -65,6 +67,44 @@ class Request
             {
                 $res[$param] = $value;
             }
+        }
+        if($this->files)
+        {
+            foreach ($this->files as $param => $file)
+            {
+                $res[$param] = new UploadedFile($file["tmp_name"], $file["name"], $file["type"]);
+            }
+        }
+        return $res;
+    }
+
+    public function file($param) :null|UploadedFile
+    {
+        if(!$this->files)
+        {
+            return null;
+        }
+        if(!isset($this->files[$param]))
+        {
+            return null;
+        }
+        $file = $this->files[$param];
+        return new UploadedFile($file["tmp_name"], $file["name"], $file["type"]);
+    }
+
+    /**
+     * @return UploadedFile[]
+     */
+    public function files() :array
+    {
+        if(!$this->files)
+        {
+            return [];
+        }
+        $res = [];
+        foreach ($this->files as $name => $file)
+        {
+            $res[$name] = new UploadedFile($file["tmp_name"], $file["name"], $file["type"]);
         }
         return $res;
     }
