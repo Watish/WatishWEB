@@ -4,7 +4,7 @@ namespace Watish\Components\Attribute;
 
 use Attribute;
 
-#[Attribute]
+#[Attribute(Attribute::TARGET_CLASS)]
 class Crontab
 {
     public string $rule;

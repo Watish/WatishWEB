@@ -28,6 +28,7 @@ class Route
         $controllerLoader = ClassLoaderConstructor::getClassLoader("controller");
         $classes = $controllerLoader->getClasses();
         $attributesLoader = new AttributeLoader($classes);
+
         $PrefixAttr = $attributesLoader->getClassAttributes(Prefix::class);
         $PathAttr = $attributesLoader->getMethodAttributes(Path::class);
         $MiddlewareAttr = $attributesLoader->getAttributes(Middleware::class);

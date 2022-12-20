@@ -71,7 +71,7 @@ class ClassLoader
     /**
      * @return array
      */
-    public function getPathes(): array
+    public function getPathList(): array
     {
         return $this->pathes;
     }
