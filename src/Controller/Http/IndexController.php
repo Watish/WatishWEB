@@ -6,6 +6,7 @@ use Watish\Components\Attribute\Inject;
 use Watish\Components\Attribute\Path;
 use Watish\Components\Attribute\Prefix;
 use Watish\Components\Includes\Context;
+use Watish\Components\Struct\Request;
 use Watish\Components\Utils\Table;
 use Watish\WatishWEB\Service\TestService;
 
@@ -13,9 +14,8 @@ use Watish\WatishWEB\Service\TestService;
 class IndexController
 {
     #[Path("")]
-    public function index(Context $context): array
+    public function index(Request $request): array
     {
-        $request = $context->getRequest();
         return [
             "Method" => $request->getMethod(),
             "Params" => $request->all()

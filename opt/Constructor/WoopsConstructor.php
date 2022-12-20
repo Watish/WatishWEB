@@ -34,7 +34,7 @@ class WoopsConstructor
         return self::$whoops;
     }
 
-    public static function handle($e, Context &$context , string $prefix = null) :void
+    public static function handle($e, string $prefix = null) :void
     {
         $whoops = new Run;
         $whoops->allowQuit(false);
@@ -44,10 +44,8 @@ class WoopsConstructor
         if(self::$debug)
         {
             $json = $whoops->handleException($e);
-            $context->json(json_decode($json),500);
+            Context::json(json_decode($json),500);
         }
-        $context->abort();
-        $context->reset();
     }
 
 

@@ -4,15 +4,15 @@ namespace Watish\WatishWEB\Middleware;
 
 use Watish\Components\Attribute\GlobalMiddleware;
 use Watish\Components\Includes\Context;
+use Watish\Components\Struct\Request;
+use Watish\Components\Struct\Response;
 
 #[GlobalMiddleware]
 class CorsMiddleware implements MiddlewareInterface
 {
-    public function handle(Context $context): void
+    public function handle(Request $request,Response $response): void
     {
-        $response = $context->getResponse();
         $response->header("Access-Control-Allow-Origin", "*");
         $response->header("Access-Control-Allow-Credentials", true);
-        $context->setResponse($response->response);
     }
 }

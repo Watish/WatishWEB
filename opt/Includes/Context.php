@@ -3,12 +3,9 @@
 namespace Watish\Components\Includes;
 
 use Exception;
-use Illuminate\Database\Connection;
-use Predis\Client;
 use Swoole\Coroutine;
 use Watish\Components\Struct\Request;
 use Watish\Components\Struct\Response;
-use Watish\Components\Utils\ConnectionPool;
 use Watish\Components\Utils\Logger;
 use Watish\Components\Utils\ProcessSignal;
 use Watish\Components\Utils\Worker\WorkerSignal;
@@ -19,369 +16,318 @@ use Watish\Components\Utils\WServ;
  */
 class Context
 {
-    private array $set;
-    private array $globalSet;
-    private array $processes;
-    private Connection $sqlConnection;
-    private ConnectionPool $pdoPool;
-    private ConnectionPool $redisPool;
-    private int $workerId;
-    private int $workerNum;
+    private static array $set = [];
+    private static array $globalSet = [];
+    private static array $processes = [];
+    private static int $workerId = -1;
+    private static int $workerNum = 0;
     /**
      * @var null
      */
-    private $workerPool;
-    private $lock;
-    public function __construct()
-    {
-        $this->set = [];
-        $this->processes = [];
-        $this->globalSet = [];
-        $this->workerId = 0;
-        $this->workerNum = 0;
-        $this->workerPool = null;
-    }
+    private static $workerPool;
+    private static $lock;
 
     /**
      * @param mixed $lock
      */
-    public function setLock(mixed $lock): void
+    public static function setLock(mixed $lock): void
     {
-        $this->lock = $lock;
+        self::$lock = $lock;
     }
     /**
      * @param null $workerPool
      */
-    public function setWorkerPool($workerPool): void
+    public static function setWorkerPool($workerPool): void
     {
-        $this->workerPool = $workerPool;
+        self::$workerPool = $workerPool;
     }
 
-    private function signalWorker(string $signal): void
+    private static function signalWorker(string $signal): void
     {
-        $cid = $this->getCoUid();
-        $worker_id = $this->workerId;
+        $cid = self::getCoUid();
+        $worker_id = self::$workerId;
         Logger::debug("Signaling Workers From Cid #$cid","Worker#{$worker_id}");
-        $this->lock->lock();
-        for($i=0;$i<($this->workerNum);$i++)
+        self::$lock->lock();
+        for($i=0;$i<(self::$workerNum);$i++)
         {
-            if($i == $this->workerId)
+            if($i == self::$workerId)
             {
                 continue;
             }
-            $process = $this->workerPool->getProcess($i);
+            $process = self::$workerPool->getProcess($i);
             $socket = $process->exportSocket();
             $socket->send($signal);
         }
-        $this->lock->unlock();
+        self::$lock->unlock();
     }
 
-    public function GetGlobalSet():array
+    public static function GetGlobalSet():array
     {
-        return $this->globalSet;
+        return self::$globalSet;
     }
 
     /**
      * @param int $workerNum
      */
-    public function setWorkerNum(int $workerNum): void
+    public static function setWorkerNum(int $workerNum): void
     {
-        $this->workerNum = $workerNum;
+        self::$workerNum = $workerNum;
     }
 
     /**
      * @return int
      */
-    public function getWorkerNum(): int
+    public static function getWorkerNum(): int
     {
-        return $this->workerNum;
+        return self::$workerNum;
     }
 
     /**
      * @param int $workerId
      */
-    public function setWorkerId(int $workerId): void
+    public static function setWorkerId(int $workerId): void
     {
-        $this->workerId = $workerId;
+        self::$workerId = $workerId;
     }
 
     /**
      * @return int
      */
-    public function getWorkerId(): int
+    public static function getWorkerId(): int
     {
-        return $this->workerId;
+        return self::$workerId;
     }
 
     /**
      * @param $serv
      * @return void
      */
-    public function setServ($serv): void
+    public static function setServ($serv): void
     {
-        $cid = $this->getCoUid();
-        $this->set[$cid]["Serv"] = $serv;
+        $cid = self::getCoUid();
+        self::$set[$cid]["Serv"] = $serv;
     }
 
     /**
      * @throws Exception
      */
-    public function getServ()
+    public static function getServ()
     {
-        $cid = $this->getCoUid();
-        if(!isset($this->set[$cid]["Serv"]))
+        $cid = self::getCoUid();
+        if(!isset(self::$set[$cid]["Serv"]))
         {
             throw new Exception("Serv Not Defined");
         }
-        return $this->set[$cid]["Serv"];
+        return self::$set[$cid]["Serv"];
     }
 
-    public function setSqlConnection(Connection $connection): void
+    public static function abort():void
     {
-        $this->sqlConnection = $connection;
-    }
-
-    public function setPdoPool(ConnectionPool $pdoPool): void
-    {
-        $this->pdoPool = $pdoPool;
-    }
-
-    public function abort():void
-    {
-        $cid = $this->getCoUid();
-        $this->set[$cid]["abort"] = true;
+        $cid = self::getCoUid();
+        self::$set[$cid]["abort"] = true;
         Logger::debug("Cid {$cid} Aborted!");
     }
 
-    public function isAborted() :bool
+    public static function isAborted() :bool
     {
-        $cid = $this->getCoUid();
-        if(!isset($this->set[$cid]["abort"]))
+        $cid = self::getCoUid();
+        if(!isset(self::$set[$cid]["abort"]))
         {
             return false;
         }
-        return $this->set[$cid]["abort"];
+        return self::$set[$cid]["abort"];
     }
 
-    public function global_Set_Response(string $key,$response):void
+    public static function global_Set_Response(string $key,$response):void
     {
-        $this->globalSet[$key] = $response;
+        self::$globalSet[$key] = $response;
     }
 
-    public function global_Set(string $key,string $value,bool $sig=true):void
+    public static function global_Set(string $key,string $value,bool $sig=true):void
     {
-        $this->globalSet[$key] = $value;
+        self::$globalSet[$key] = $value;
         if($sig)
         {
             $signal = WorkerSignal::KV_Set($key,$value);
-            $this->signalWorker($signal);
+            self::signalWorker($signal);
         }
     }
 
-    public function global_Get($key)
+    public static function global_Get($key)
     {
-        return $this->globalSet[$key] ?? null;
+        return self::$globalSet[$key] ?? null;
     }
 
-    public function global_Del($key,bool $sig=true) :void
+    public static function global_Del($key,bool $sig=true) :void
     {
-        unset($this->globalSet[$key]);
+        unset(self::$globalSet[$key]);
         if($sig)
         {
             $signal = WorkerSignal::KV_Del($key);
-            $this->signalWorker($signal);
+            self::signalWorker($signal);
         }
     }
 
-    public function globalSet_Add(string $key,mixed $item,string $uuid,bool $sig=true): void
+    public static function globalSet_Add(string $key,mixed $item,string $uuid,bool $sig=true): void
     {
-        if(!isset($this->globalSet[$key]))
+        if(!isset(self::$globalSet[$key]))
         {
-            $this->globalSet[$key] = [];
+            self::$globalSet[$key] = [];
         }
-        $this->globalSet[$key][$uuid] = $item;
+        self::$globalSet[$key][$uuid] = $item;
         if($sig)
         {
             $signal = WorkerSignal::Set_Add($key,$uuid,$item);
-            $this->signalWorker($signal);
+            self::signalWorker($signal);
         }
     }
 
-    public function globalSet_Add_Response(string $key,$response,string $uuid):void
+    public static function globalSet_Add_Response(string $key,$response,string $uuid):void
     {
-        if(!isset($this->globalSet[$key]))
+        if(!isset(self::$globalSet[$key]))
         {
-            $this->globalSet[$key] = [];
+            self::$globalSet[$key] = [];
         }
-        $this->globalSet[$key][$uuid] = $response;
+        self::$globalSet[$key][$uuid] = $response;
     }
 
-    public function globalSet_Del($key,$uuid,bool $sig=true): void
+    public static function globalSet_Del($key,$uuid,bool $sig=true): void
     {
-        unset($this->globalSet[$key][$uuid]);
+        unset(self::$globalSet[$key][$uuid]);
         if($sig)
         {
             $signal = WorkerSignal::Set_Del($key,$uuid);
-            $this->signalWorker($signal);
+            self::signalWorker($signal);
         }
     }
 
-    public function globalSet_Exists($key,$uuid): bool
+    public static function globalSet_Exists($key,$uuid): bool
     {
-        return isset($this->globalSet[$key][$uuid]);
+        return isset(self::$globalSet[$key][$uuid]);
     }
 
-    public function globalSet_Get($key,$uuid):mixed
+    public static function globalSet_Get($key,$uuid):mixed
     {
-        return $this->globalSet[$key][$uuid];
+        return self::$globalSet[$key][$uuid];
     }
 
-    public function globalSet_keys($key):array
+    public static function globalSet_keys($key):array
     {
-        if(isset($this->globalSet[$key]))
+        if(isset(self::$globalSet[$key]))
         {
-            return array_keys($this->globalSet[$key]);
+            return array_keys(self::$globalSet[$key]);
         }
         return [];
     }
 
-    public function globalSet_items($key):array
+    public static function globalSet_items($key):array
     {
-        return array_values($this->globalSet[$key]);
+        return array_values(self::$globalSet[$key]);
     }
 
-    public function global_Exists($key) :bool
+    public static function global_Exists($key) :bool
     {
-        return isset($this->globalSet[$key]);
+        return isset(self::$globalSet[$key]);
     }
 
-    public function globalSet_PushAll(string $key,string $msg): void
+    public static function globalSet_PushAll(string $key,string $msg): void
     {
         $signal = WorkerSignal::Set_Push_All($key,$msg);
-        if($this->global_Exists($key))
+        if(self::global_Exists($key))
         {
-            $response_list = $this->globalSet_items($key);
+            $response_list = self::globalSet_items($key);
             foreach ($response_list as $response)
             {
                 $response->push($msg);
             }
         }
-        $this->signalWorker($signal);
+        self::signalWorker($signal);
     }
 
-    public function globalSet_Push(string $key,string $uuid,string $msg): void
+    public static function globalSet_Push(string $key,string $uuid,string $msg): void
     {
         $signal = WorkerSignal::Set_Push($key,$uuid,$msg);
-        if($this->globalSet_Exists($key,$uuid))
+        if(self::globalSet_Exists($key,$uuid))
         {
-            $response = $this->globalSet_Get($key,$uuid);
+            $response = self::globalSet_Get($key,$uuid);
             $response->push($msg);
         }
-        $this->signalWorker($signal);
+        self::signalWorker($signal);
     }
 
-    public function global_Push(string $key,string $msg):void
+    public static function global_Push(string $key,string $msg):void
     {
         $signal = WorkerSignal::KV_Push($key,$msg);
-        if($this->global_Exists($key))
+        if(self::global_Exists($key))
         {
-            $response = $this->global_Get($key);
+            $response = self::global_Get($key);
             $response->push($msg);
         }
-        $this->signalWorker($signal);
+        self::signalWorker($signal);
     }
 
-    public function json(array|object $data,int $statusCode=200 ,string $reason = ""):void
+    public static function json(array|object $data,int $statusCode=200 ,string $reason = ""):void
     {
-        $response = $this->getResponse();
+        $response = self::getResponse();
         $response->header("content-type","application/json");
         $response->status($statusCode,$reason);
         $response->end(json_encode($data));
     }
 
-    public function html(string $html , int $statusCode=200 , string $reason = ""):void
+    public static function html(string $html , int $statusCode=200 , string $reason = ""):void
     {
-        $response = $this->getResponse();
+        $response = self::getResponse();
         $response->status($statusCode,$reason);
         $response->header("content-type","text/html; charset=utf-8");
         $response->end($html);
     }
 
-    private function getPdo() :\PDO
-    {
-        return Database::getPdo();
-    }
-
     /**
-     * @param ConnectionPool $redisPool
-     */
-    public function setRedisPool(ConnectionPool $redisPool): void
-    {
-        $this->redisPool = $redisPool;
-    }
-
-    public function getRedis() :Client
-    {
-        $cid = $this->getCoUid();
-        $client = Database::redis();
-        $this->set[$cid]["Redis"] = $client;
-        return $client;
-    }
-
-    /**
-     * @param \Swoole\Http\Request $request
+     * @param Request $request
      * @return void
      */
-    public function setRequest(\Swoole\Http\Request $request): void
+    public static function setRequest(Request $request): void
     {
-        $cid = $this->getCoUid();
-        $this->set[$cid]["Request"] = $request;
+        $cid = self::getCoUid();
+        self::$set[$cid]["Request"] = $request;
     }
 
-    /**
-     * @return Request
-     * @throws Exception
-     */
-    public function getRequest(): Request
+    public static function getRequest(): Request|null
     {
-        $cid = $this->getCoUid();
-        if(!isset($this->set[$cid]["Request"]))
-        {
-            throw new Exception("Request Undefined");
-        }
-        return new Request($this->set[$cid]["Request"]);
-    }
-
-    /**
-     * @param \Swoole\Http\Response $response
-     * @return void
-     */
-    public function setResponse(\Swoole\Http\Response $response):void
-    {
-        $cid = $this->getCoUid();
-        $this->set[$cid]["Response"] = $response;
-    }
-
-    /**
-     * @return Response|null
-     */
-    public function getResponse(): Response|null
-    {
-        $cid = $this->getCoUid();
-        if(!isset($this->set[$cid]["Response"]))
+        $cid = self::getCoUid();
+        if(!isset(self::$set[$cid]["Request"]))
         {
             return null;
         }
-        return new Response($this->set[$cid]["Response"]);
+        return self::$set[$cid]["Request"];
+    }
+
+    /**
+     * @param Response $response
+     * @return void
+     */
+    public static function setResponse(Response $response):void
+    {
+        $cid = self::getCoUid();
+        self::$set[$cid]["Response"] = $response;
+    }
+
+    public static function getResponse(): Response|null
+    {
+        $cid = self::getCoUid();
+        if(!isset(self::$set[$cid]["Response"]))
+        {
+            return null;
+        }
+        return self::$set[$cid]["Response"];
     }
 
     /**
      * @return WServ
-     * @throws Exception
      */
-    public function Server(): WServ
+    public static function Server(): WServ
     {
-        return new WServ($this->getServ());
+        return new WServ(self::getServ());
     }
 
     /**
@@ -389,97 +335,93 @@ class Context
      * @param mixed $value
      * @return void
      */
-    public function Set(string $key,mixed $value) :void
+    public static function Set(string $key,mixed $value) :void
     {
-        $cid = $this->getCoUid();
-        $this->set[$cid][$key] = $value;
+        $cid = self::getCoUid();
+        self::$set[$cid][$key] = $value;
     }
 
     /**
      * @param array $process
      * @return void
      */
-    public function setProcesses(array $process) :void
+    public static function setProcesses(array $process) :void
     {
-        $this->processes = $process;
+        self::$processes = $process;
     }
 
     /**
      * @throws Exception
      */
-    public function getProcess(string $key)
+    public static function getProcess(string $key)
     {
-        if(!$this->processExists($key))
+        if(!self::processExists($key))
         {
             throw new Exception("Process Undefined");
         }
-        return $this->processes[$key];
+        return self::$processes[$key];
     }
 
-    public function processExists(string $key) :bool
+    public static function processExists(string $key) :bool
     {
-        return isset($this->processes[$key]);
+        return isset(self::$processes[$key]);
     }
 
     /**
      * @param int $fd
      * @return bool
-     * @throws Exception
      */
-    public function ExistsFd(int $fd) :bool
+    public static function ExistsFd(int $fd) :bool
     {
-        return $this->getServ()->exists($fd);
+        return self::getServ()->exists($fd);
     }
 
-    /**
-     * @throws Exception
-     */
-    public function Get(string $key) :mixed
+    public static function Get(string $key) :mixed
     {
-        $cid = $this->getCoUid();
-        if(!isset($this->set[$cid][$key]))
+        $cid = self::getCoUid();
+        if(!isset(self::$set[$cid][$key]))
         {
-            throw new Exception("Key Not Found : $key");
+            return null;
         }
-        return $this->set[$cid][$key];
+        return self::$set[$cid][$key];
     }
 
     /**
      * @param string $key
      * @return bool
      */
-    public function Exists(string $key) :bool
+    public static function Exists(string $key) :bool
     {
-        $cid = $this->getCoUid();
-        return isset($this->set[$cid][$key]);
+        $cid = self::getCoUid();
+        return isset(self::$set[$cid][$key]);
     }
 
     /**
      * @throws Exception
      */
-    public function AsyncTask(\Closure $closure) :void
+    public static function AsyncTask(\Closure $closure) :void
     {
-        if(!isset($this->set[$this->getCoUid()]["Serv"]))
+        if(!isset(self::$set[self::getCoUid()]["Serv"]))
         {
             throw new Exception("Serv Undefined");
         }
 
-        $taskProcessList = $this->getProcess("Task");
+        $taskProcessList = self::getProcess("Task");
         shuffle($taskProcessList);
         $taskProcess = $taskProcessList[0];
         $socket = $taskProcess->exportSocket();
         $socket->send(ProcessSignal::AsyncTask($closure));
     }
 
-    private function getCoUid() : int
+    private static function getCoUid() : int
     {
         return Coroutine::getuid();
     }
 
-    public function reset():void
+    public static function reset():void
     {
-        $cid = $this->getCoUid();
-        unset($this->set[$cid]);
+        $cid = self::getCoUid();
+        unset(self::$set[$cid]);
         Database::reset();
         Logger::debug("Cid {$cid} Reset");
     }

@@ -67,21 +67,20 @@ $processList = ProcessConstructor::getProcessList();
 $processNameSet = ProcessConstructor::getProcessNameSet();
 
 //Init Context
-$context = new Context();
-$context->setProcesses($processNameSet);
+Context::setProcesses($processNameSet);
 
 //Init Route
 RouteConstructor::init();
 $route = RouteConstructor::getRoute();
-$context->Set("Route",$route);
+Context::Set("Route",$route);
 
 //Init Server Pool
 $pool_worker_num = $server_config["worker_num"];
 $pool = new Swoole\Process\Pool($pool_worker_num,1,0,true);
 $pool->set(['enable_coroutine' => true]);
-$context->setWorkerNum($pool_worker_num);
+Context::setWorkerNum($pool_worker_num);
 
-$pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($processNameSet,$context,$route,$pool_worker_num,$server_config) {
+$pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($processNameSet,$route,$pool_worker_num,$server_config) {
 
     //Init Woops
     WoopsConstructor::init();
@@ -105,17 +104,17 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
     }
 
     //Init AsyncTask
-    AsyncTaskConstructor::init($context->getProcess("Task"));
+    AsyncTaskConstructor::init(Context::getProcess("Task"));
 
     //get worker process
     $worker_process = $pool->getProcess();
 
     //Init Worker Process,Pool
-    $context->setWorkerPool($pool);
-    $context->setWorkerId($workerId);
+    Context::setWorkerPool($pool);
+    Context::setWorkerId($workerId);
 
     //Init Context Lock
-    $context->setLock(new Lock(SWOOLE_MUTEX));
+    Context::setLock(new Lock(SWOOLE_MUTEX));
 
     $server = new Server($server_config["listen_host"], $server_config["listen_port"], false , true);
     $server->set([
@@ -125,22 +124,23 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
     ]);
 
     //Handle Request
-    $server->handle('/',function (Request $request, Response $ws) use (&$context,$route,$server,$workerId){
+    $server->handle('/',function (Request $request, Response $response) use ($route,$server,$workerId){
         Logger::debug("Worker #{$workerId}");
         Logger::debug($request->server["request_uri"],"Request");
         $real_path = $request->server["request_uri"];
         $request_method = $request->getMethod();
-        $context->Set("Request",$request);
-        $context->Set("Response",$ws);
+        $struct_request = new \Watish\Components\Struct\Request($request);
+        $struct_response = new \Watish\Components\Struct\Response($response);
+        Context::setRequest($struct_request);
+        Context::setResponse($struct_response);
         if(!$route->path_exists($real_path))
         {
             //404
-            $context->json([
+            Context::json([
                 "Ok" => false,
                 "Msg" => "Page Not Found"
             ],404);
-            $context->abort();
-            $context->reset();
+            Context::reset();
             return;
         }
         $closure_array = $route->get_path_closure($real_path);
@@ -149,16 +149,15 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
         $allow_methods = $closure_array["methods"];
         if($allow_methods and !in_array($request_method,$allow_methods))
         {
-            $context->json([
+            Context::json([
                 "Ok" => false,
                 "Msg" => "Method Not Allowed"
             ],403);
-            $context->abort();
-            $context->reset();
+            Context::reset();
             return;
         }
         $global_middlewares = $route->get_global_middlewares();
-        $context->setServ($server);
+        Context::setServ($server);
 
         //Global Middleware
         if(count($global_middlewares) > 0)
@@ -166,22 +165,23 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
             foreach ($global_middlewares as $global_middleware)
             {
                 Logger::debug("GlobalMiddleware...");
+                //Handle Global Middlewares
                 try {
-                    call_user_func_array([ClassInjector::getInjectedInstance($global_middleware),"handle"],[&$context]);
+                    call_user_func_array([ClassInjector::getInjectedInstance($global_middleware),"handle"],[&$struct_request,&$struct_response]);
                 }catch (Exception $exception)
                 {
-                    WoopsConstructor::handle($exception,$context,"GlobalMiddleware");
+                    WoopsConstructor::handle($exception,"GlobalMiddleware");
+                    Context::reset();
+                    return;
+                }
+                //Check Aborted
+                if(Context::isAborted())
+                {
+                    Logger::debug("Aborted!");
+                    Context::reset();
                     return;
                 }
             }
-        }
-
-        //Aborted After Global Middleware
-        if($context->isAborted())
-        {
-            Logger::debug("Aborted!");
-            $context->reset();
-            return;
         }
 
         //Before Middleware
@@ -190,57 +190,51 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
             foreach ($before_middlewares as $before_middleware)
             {
                 Logger::debug("BeforeMiddleWare...");
+                //Handle Before Middlewares
                 try {
-                    call_user_func_array([ClassInjector::getInjectedInstance($before_middleware),"handle"],[&$context]);
+                    call_user_func_array([ClassInjector::getInjectedInstance($before_middleware),"handle"],[&$struct_request,&$struct_response]);
                 }catch (Exception $exception){
-                    WoopsConstructor::handle($exception,$context,"BeforeMiddleWare");
+                    WoopsConstructor::handle($exception,"BeforeMiddleWare");
+                    Context::reset();
+                    return;
+                }
+                //Check Aborted
+                if(Context::isAborted())
+                {
+                    Logger::debug("Aborted!");
+                    Context::reset();
                     return;
                 }
             }
         }
 
-        //Aborted After Middleware
-        if($context->isAborted())
-        {
-            Logger::debug("Aborted!");
-            $context->reset();
-            return;
-        }
-
         //Controller
         Logger::debug("Controller...");
         try {
-            $result = call_user_func_array([ClassInjector::getInjectedInstance($closure[0]),$closure[1]],[&$context]);
+            $result = call_user_func_array([ClassInjector::getInjectedInstance($closure[0]),$closure[1]],[&$struct_request,&$struct_response]);
             if(isset($result))
             {
                 if(is_string($result))
                 {
-                    $context->html($result);
+                    Context::html($result);
                 }elseif(is_array($result))
                 {
-                    $context->json($result);
+                    Context::json($result);
                 }else{
-                    $context->html((string)$result);
+                    Context::html((string)$result);
                 }
             }
         }catch (Exception $exception)
         {
-            WoopsConstructor::handle($exception,$context,"Controller");
+            WoopsConstructor::handle($exception,"Controller");
+            Context::reset();
             return;
         }
 
-        //Aborted After Controller
-        if($context->isAborted())
-        {
-            Logger::debug("Aborted!");
-            $context->reset();
-            return;
-        }
-
-        $context->reset();
+        Context::reset();
     });
     //Watching Process By Single
-    Coroutine::create(function() use ($pool,$pool_worker_num,$workerId,&$context,&$processNameSet){
+    Coroutine::create(function() use ($pool,$pool_worker_num,$workerId,&$processNameSet){
         if($workerId !== $pool_worker_num-1)
         {
             return;
@@ -274,9 +268,9 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
     });
 
     //Watching Worker Process
-    Coroutine::create(function() use (&$context,&$worker_process) {
+    Coroutine::create(function() use (&$worker_process) {
         $cid = Coroutine::getuid();
-        $worker_id = $context->getWorkerId();
+        $worker_id = Context::getWorkerId();
         Logger::debug("Worker #{$worker_id} Cid #{$cid} Started");
         $socket = $worker_process->exportSocket();
         while (1)
@@ -287,7 +281,7 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
             {
                 try{
                     $handler = new \Watish\Components\Utils\Worker\SignalHandler($rec);
-                    $handler->handle($context);
+                    $handler->handle();
                 }catch (Exception $e)
                 {
                     Logger::error($e->getMessage());
@@ -297,7 +291,7 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
         }
     });
 
-    $context->setServ($server);
+    Context::setServ($server);
     $server->start();
 });
 Logger::clear();
