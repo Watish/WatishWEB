@@ -15,15 +15,17 @@ class ClassLoader
     private array $pathes = [];
     private bool $proxy;
     private array $proxy_class = [];
+    private array $proxy_keywords_set = [];
+    private array $proxy_set = [];
 
     /**
      * @throws FilesystemException
      */
-    public function __construct(string $dir_path, string $namespace, bool $deep = true , bool $proxy = false)
+    public function __construct(string $dir_path, string $namespace, bool $deep = true)
     {
         $filesystem = FileSystem::root();
         $this->filesystem = $filesystem;
-        $this->proxy = $proxy;
+        $this->proxy = true;
         $controllers = $this->filesystem->listContents($dir_path,$deep)->filter(function (StorageAttributes $attributes) {
             return $attributes->isFile();
         })->toArray();
@@ -41,16 +43,21 @@ class ClassLoader
                 $translator = new ClassTranslator($class);
                 $translator->translate();
                 $translator->save_and_require();
+                $proxy_class = $translator->getProxyClassName();
+                $this->proxy_keywords_set[$proxy_class] = $class;
             }
         }
-        if($proxy)
+        foreach (get_declared_classes() as $class)
         {
-            foreach (get_declared_classes() as $class)
+            if(str_contains($class,"PROXY_"))
             {
-                if(str_contains($class,"PROXY_"))
+                foreach (array_keys($this->proxy_keywords_set) as $keyword)
                 {
-                    Logger::debug($class);
-                    $this->proxy_class[] = $class;
+                    if(str_contains($class,$keyword))
+                    {
+                        $origin_class = $this->proxy_keywords_set[$keyword];
+                        $this->proxy_set[$origin_class] = $class;
+                    }
                 }
             }
         }
@@ -61,11 +68,20 @@ class ClassLoader
      */
     public function getClasses():array
     {
-        if($this->proxy)
-        {
-            return $this->proxy_class;
-        }
         return $this->classes;
+    }
+
+    public function isProxy() :bool
+    {
+        return $this->proxy;
+    }
+
+    /**
+     * @return array
+     */
+    public function getProxySet(): array
+    {
+        return $this->proxy_set;
     }
 
     /**

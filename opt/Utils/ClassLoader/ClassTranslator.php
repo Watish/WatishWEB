@@ -81,7 +81,6 @@ class ClassTranslator
         $prefix = "PROXY_".substr(uniqid().time(),8,16);
         $proxy_class = "{$prefix}_{$this->short_name}";
         $this->proxy_class_name = $proxy_class;
-
         return str_replace($this->short_name,$proxy_class,$line);
     }
 

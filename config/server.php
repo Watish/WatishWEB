@@ -11,7 +11,6 @@ return  [
             "dir" => "/src/Controller/",
             "namespace" => "Watish\WatishWEB\Controller",
             "deep" => true,
-            "proxy" => true
         ],
         "aspect" => [
             "dir" => "/src/Aspect/",
@@ -26,8 +25,7 @@ return  [
         "service" => [
             "dir" => "/src/Service/",
             "namespace" => "Watish\WatishWEB\Service",
-            "deep" => true,
-            'proxy' => true
+            "deep" => true
         ],
         "crontab" => [
             "dir" => "/src/Task/",

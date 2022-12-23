@@ -1,0 +1,98 @@
+{
+    "name": "icanhazstring/composer-unused",
+    "type": "library",
+    "description": "Show unused packages by scanning your code",
+    "keywords": [
+        "composer",
+        "unused",
+        "php-parser"
+    ],
+    "homepage": "https://github.com/composer-unused/composer-unused",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andreas Frömer",
+            "email": "composer-unused@icanhazstring.com"
+        }
+    ],
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "ext-json": "*",
+        "composer-unused/contracts": "^0.2",
+        "composer-unused/symbol-parser": "^0.1.10",
+        "nikic/php-parser": "^4.15",
+        "ondram/ci-detector": "^4.1",
+        "phpstan/phpdoc-parser": "^1.12",
+        "psr/container": "^1.0 || ^2.0",
+        "psr/log": "^1.1 || ^2 || ^3",
+        "symfony/config": "^4.4 || ^5.4 || ^6.0",
+        "symfony/console": "^4.4 || ^5.4 || ^6.0",
+        "symfony/dependency-injection": "^4.4.8 || ^5.4 || ^6.0",
+        "symfony/property-access": "^4.4 || ^5.4 || ^6.0",
+        "symfony/serializer": "^4.4 || ^5.4 || ^6.0",
+        "webmozart/assert": "^1.10",
+        "webmozart/glob": "^4.4"
+    },
+    "require-dev": {
+        "ext-ds": "*",
+        "ext-zend-opcache": "*",
+        "dg/bypass-finals": "^1.4",
+        "jangregor/phpstan-prophecy": "^0.8.1",
+        "phpspec/prophecy-phpunit": "^2.0.1",
+        "phpstan/phpstan": "^0.12.99",
+        "phpunit/phpunit": "^9.5.26",
+        "roave/security-advisories": "dev-master",
+        "squizlabs/php_codesniffer": "^3.7"
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "ComposerUnused\\ComposerUnused\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ComposerUnused\\ComposerUnused\\Test\\Integration\\": "tests/Integration",
+            "ComposerUnused\\ComposerUnused\\Test\\Unit\\": "tests/Unit",
+            "ComposerUnused\\ComposerUnused\\Test\\Stubs\\": "tests/Stubs"
+        }
+    },
+    "bin": [
+        "bin/composer-unused"
+    ],
+    "scripts": {
+        "analyse": "phpstan analyse --no-progress",
+        "check": [
+            "@cs-check",
+            "@analyse",
+            "@test"
+        ],
+        "cs-check": "phpcs --parallel=50 --cache=data/cs-check.json",
+        "cs-fix": "phpcbf --parallel=50",
+        "test": "phpunit"
+    },
+    "scripts-descriptions": {
+        "analyse": "Use \"phpstan\" to the analyse static code. See phpstan.neon",
+        "check": "Check the coding covention and run the tests",
+        "cs-check": "Use \"phpcs\" to check the coding convention. See phpcs.xml",
+        "cs-fix": "Use \"phpcbf\" to fix the coding convention. See phpcs.xml",
+        "test": "Use \"phpunit\" to run the tests. See phpunit.xml"
+    },
+    "support": {
+        "issues": "https://github.com/composer-unused/composer-unused/issues",
+        "source": "https://github.com/composer-unused/composer-unused"
+    },
+    "funding": [
+        {
+            "type": "other",
+            "url": "https://paypal.me/icanhazstring"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/icanhazstring"
+        }
+    ]
+}

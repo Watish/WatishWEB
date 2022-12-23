@@ -10,6 +10,7 @@ use Watish\Components\Attribute\Aspect;
 use Watish\Components\Attribute\Async;
 use Watish\Components\Attribute\Inject;
 use Watish\Components\Constructor\ClassLoaderConstructor;
+use Watish\Components\Struct\Set\Set;
 use Watish\Components\Utils\Cache\ClassCache;
 use Watish\Components\Utils\Logger;
 
@@ -18,21 +19,42 @@ class ClassInjector
 
     public static array $deep_class_pool = [];
     public static array $deep_class_count = [];
+    public static array $class_set = [];
 
     public static function init(): void
     {
+        $class_list = [];
         //Init class to Cache
         foreach (ClassLoaderConstructor::getClassLoaderList() as $classLoader)
         {
-            foreach ($classLoader->getClasses() as $class)
+            if($classLoader->isProxy())
             {
-                self::getInjectedInstance($class);
+                $proxySet = $classLoader->getProxySet();
+                foreach ($proxySet as $origin_class => $proxy_class)
+                {
+                    self::$class_set[$origin_class] = $proxy_class;
+                    $class_list[] = $origin_class;
+                }
+            }else{
+                foreach ($classLoader->getClasses() as $class)
+                {
+                    self::$class_set[$class] = $class;
+                    $class_list[] = $class;
+                }
             }
+        }
+        foreach ($class_list as $class)
+        {
+            self::getInjectedInstance($class);
         }
     }
 
     public static function getInjectedInstance(mixed $className)
     {
+        if(isset(self::$class_set[$className]))
+        {
+            $className = self::$class_set[$className];
+        }
         try {
             $reflectionClass = new \ReflectionClass($className);
             $class_name = $reflectionClass->getName();
@@ -65,7 +87,7 @@ class ClassInjector
                 continue;
             }
             $inject_class_name = $attributes[0]->getArguments()[0];
-            $property->setValue($obj,self::deep_inject_to_instance($inject_class_name));
+            $property->setValue($obj,self::deep_inject_to_instance(self::get_proxy_class($inject_class_name)));
             Logger::debug("{$class_name}:{$property_name} Injected by {$inject_class_name}","Injector");
 
         }
@@ -84,6 +106,10 @@ class ClassInjector
 
     private static function deep_inject_to_instance(string $className)
     {
+        if(isset(self::$class_set[$className]))
+        {
+            $className = self::$class_set[$className];
+        }
         if(!isset(self::$deep_class_count[$className]))
         {
             self::$deep_class_count[$className] = 1;
@@ -124,7 +150,7 @@ class ClassInjector
                 continue;
             }
             $inject_class_name = $attributes[0]->getArguments()[0];
-            $property->setValue($obj,self::deep_inject_to_instance($inject_class_name));
+            $property->setValue($obj,self::deep_inject_to_instance(self::get_proxy_class($inject_class_name)));
         }
 
         //Then Proxy
@@ -160,6 +186,11 @@ class ClassInjector
             }
         }
         return false;
+    }
+
+    private static function get_proxy_class(string $className)
+    {
+        return self::$class_set[$className] ?? $className;
     }
 
     /**
