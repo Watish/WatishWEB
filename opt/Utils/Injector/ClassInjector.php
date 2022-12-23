@@ -32,13 +32,13 @@ class ClassInjector
                 $proxySet = $classLoader->getProxySet();
                 foreach ($proxySet as $origin_class => $proxy_class)
                 {
-                    self::$class_set[$origin_class] = $proxy_class;
+                    self::$class_set[$origin_class] = "$proxy_class";
                     $class_list[] = $origin_class;
                 }
             }else{
                 foreach ($classLoader->getClasses() as $class)
                 {
-                    self::$class_set[$class] = $class;
+                    self::$class_set[$class] = "$class";
                     $class_list[] = $class;
                 }
             }
@@ -51,10 +51,6 @@ class ClassInjector
 
     public static function getInjectedInstance(mixed $className)
     {
-        if(isset(self::$class_set[$className]))
-        {
-            $className = self::$class_set[$className];
-        }
         try {
             $reflectionClass = new \ReflectionClass($className);
             $class_name = $reflectionClass->getName();
@@ -63,7 +59,7 @@ class ClassInjector
             Logger::exception($exception);
             return null;
         }
-
+        Logger::debug($class_name,'ClassInjector');
         if(ClassCache::exists($class_name))
         {
             Logger::debug("Hit Cache : {$class_name}","Injector");
@@ -72,6 +68,11 @@ class ClassInjector
             {
                 return $obj;
             }
+        }
+        if(isset(self::$class_set[$class_name]))
+        {
+            $className = self::$class_set[$class_name];
+            $reflectionClass = new \ReflectionClass($className);
         }
 
         $properties = $reflectionClass->getProperties();
@@ -106,10 +107,6 @@ class ClassInjector
 
     private static function deep_inject_to_instance(string $className)
     {
-        if(isset(self::$class_set[$className]))
-        {
-            $className = self::$class_set[$className];
-        }
         if(!isset(self::$deep_class_count[$className]))
         {
             self::$deep_class_count[$className] = 1;
