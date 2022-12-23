@@ -16,8 +16,9 @@ class Request
     public array|null $post;
     public array|null $cookie;
     public array|null $files;
+    private array $route_params;
 
-    public function __construct(\Swoole\Http\Request $request)
+    public function __construct(\Swoole\Http\Request $request,array $route_params = [])
     {
         $this->request = $request;
         $this->header = $request->header;
@@ -26,6 +27,7 @@ class Request
         $this->post = $request->post;
         $this->cookie = $request->cookie;
         $this->files = $request->files;
+        $this->route_params = $route_params;
     }
 
     public function getContent():string
@@ -76,6 +78,15 @@ class Request
             }
         }
         return $res;
+    }
+
+    public function route($name)
+    {
+        if(!isset($this->route_params[$name]))
+        {
+            return null;
+        }
+        return $this->route_params[$name];
     }
 
     public function file($param) :null|UploadedFile

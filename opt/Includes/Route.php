@@ -2,6 +2,8 @@
 
 namespace Watish\Components\Includes;
 
+use FastRoute\Dispatcher;
+use FastRoute\RouteCollector;
 use Watish\Components\Attribute\GlobalMiddleware;
 use Watish\Components\Attribute\Middleware;
 use Watish\Components\Attribute\Path;
@@ -10,6 +12,7 @@ use Watish\Components\Constructor\ClassLoaderConstructor;
 use Watish\Components\Utils\AttributeLoader\AttributeLoader;
 use Watish\Components\Utils\Logger;
 use Watish\Components\Utils\Table;
+use function FastRoute\simpleDispatcher;
 
 class Route
 {
@@ -163,6 +166,21 @@ class Route
         }
     }
 
+    public function get_dispatcher(): Dispatcher
+    {
+        $global_middlewares = $this->global_middlewares;
+        $routes = $this->routes;
+        return simpleDispatcher(function (RouteCollector $r) use ($global_middlewares,$routes){
+            foreach ($routes as $path => $array)
+            {
+                $r->addRoute($array["methods"],$path,[
+                    "global_middlewares" => $global_middlewares,
+                    "route_array" => $array
+                ]);
+            }
+        });
+    }
+
     public function path_exists(string $path) :bool
     {
         return isset($this->routes[$path]);
@@ -184,6 +202,12 @@ class Route
         {
             Logger::error("Path Duplicated:{$path}","Route");
             return;
+        }
+        if(empty($methods))
+        {
+            $methods = [
+                'GET','POST','PUT','HEAD','PATCH','DELETE'
+            ];
         }
         $this->routes[$path] = [
             "callback" => $closure_array,

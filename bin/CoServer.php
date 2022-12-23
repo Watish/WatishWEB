@@ -77,7 +77,6 @@ Context::setProcesses($processNameSet);
 //Init Route
 RouteConstructor::init();
 $route = RouteConstructor::getRoute();
-Context::Set("Route",$route);
 
 //Init Server Pool
 $pool_worker_num = $server_config["worker_num"];
@@ -89,6 +88,8 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
 
     //Init Woops
     WoopsConstructor::init();
+
+    $route_dispatcher = $route->get_dispatcher();
 
     //Init Injector and preCache all class loader
     ClassInjector::init();
@@ -129,39 +130,37 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
     ]);
 
     //Handle Request
-    $server->handle('/',function (Request $request, Response $response) use ($route,$server,$workerId){
+    $server->handle('/',function (Request $request, Response $response) use ($route,$route_dispatcher,$server,$workerId){
         Logger::debug("Worker #{$workerId}");
         Logger::debug($request->server["request_uri"],"Request");
         $real_path = $request->server["request_uri"];
         $request_method = $request->getMethod();
-        $struct_request = new \Watish\Components\Struct\Request($request);
+        $route_info = $route_dispatcher->dispatch($request_method,$real_path);
+        $struct_request = new \Watish\Components\Struct\Request($request,$route_info[2] ?? []);
         $struct_response = new \Watish\Components\Struct\Response($response);
         Context::setRequest($struct_request);
         Context::setResponse($struct_response);
-        if(!$route->path_exists($real_path))
+        switch ($route_info[0])
         {
-            //404
-            Context::json([
-                "Ok" => false,
-                "Msg" => "Page Not Found"
-            ],404);
-            Context::reset();
-            return;
+            case FastRoute\Dispatcher::NOT_FOUND:
+                Context::json([
+                    "Ok" => false,
+                    "Msg" => "Route Not Found"
+                ],404);
+                Context::reset();
+                return;
+            case \FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
+                Context::json([
+                    "Ok" => false,
+                    "Msg" => "Method Not Allowed"
+                ],403);
+                Context::reset();
+                return;
         }
-        $closure_array = $route->get_path_closure($real_path);
+        $closure_array = $route_info[1]["route_array"];
         $closure = $closure_array["callback"];
         $before_middlewares = $closure_array["before_middlewares"];
-        $allow_methods = $closure_array["methods"];
-        if($allow_methods and !in_array($request_method,$allow_methods))
-        {
-            Context::json([
-                "Ok" => false,
-                "Msg" => "Method Not Allowed"
-            ],403);
-            Context::reset();
-            return;
-        }
-        $global_middlewares = $route->get_global_middlewares();
+        $global_middlewares = $route_info[1]["global_middlewares"];
         Context::setServ($server);
 
         //Global Middleware

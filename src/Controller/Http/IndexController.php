@@ -28,11 +28,11 @@ class IndexController
         ];
     }
 
-    #[Path("/hello")]
-    public function hello(Request $request):array
+    #[Path("/hello/{name}")]
+    public function hello_somebody(Request $request):array
     {
         return [
-            "msg" => "Hello"
+            "msg" => "hello ".$request->route("name")
         ];
     }
 }
