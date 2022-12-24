@@ -13,13 +13,11 @@ use Watish\WatishWEB\Middleware\CorsMiddleware;
 use Watish\WatishWEB\Service\BaseService;
 use Watish\WatishWEB\Service\TestService;
 
-#[Prefix("")]
 class IndexController
 {
     #[Inject(BaseService::class)]
     public BaseService $baseService;
 
-    #[Path("/")]
     public function index(Request $request): array
     {
         return [
