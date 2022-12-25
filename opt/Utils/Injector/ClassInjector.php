@@ -172,7 +172,6 @@ class ClassInjector
         foreach ($methods as $method)
         {
             $params = $method->getParameters();
-            Logger::debug($params,"Params_Proxy");
             foreach ($attributeClassList as $attributeClass)
             {
                 $attributes = $method->getAttributes($attributeClass);

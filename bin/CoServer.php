@@ -267,7 +267,7 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
                     }
                 }
             }
-            usleep(CPU_SLEEP_TIME);
+            Swoole\Coroutine::sleep(CPU_SLEEP_TIME);
         }
     });
 
