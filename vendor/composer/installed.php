@@ -3,7 +3,7 @@
         'name' => 'watish/watishweb',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '1e38502cdbab604640bea30dc0fb8cb9bd67b11b',
+        'reference' => 'fb8620378bda9ff45870d01b49f3e85bc609ce65',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -63,17 +63,6 @@
             'install_path' => __DIR__ . '/../dragonmantank/cron-expression',
             'aliases' => array(),
             'dev_requirement' => false,
-        ),
-        'eaglewu/swoole-ide-helper' => array(
-            'pretty_version' => 'dev-master',
-            'version' => 'dev-master',
-            'reference' => '70147a030c2dd5c1171bedae3a31970f3bf9c280',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../eaglewu/swoole-ide-helper',
-            'aliases' => array(
-                0 => '9999999-dev',
-            ),
-            'dev_requirement' => true,
         ),
         'egulias/email-validator' => array(
             'pretty_version' => '3.2.1',
@@ -336,6 +325,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'swoole/ide-helper' => array(
+            'pretty_version' => '5.0.1',
+            'version' => '5.0.1.0',
+            'reference' => 'f9cdf7bfb70ef3a8a2b8e9eb14ce3d09c02524fa',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../swoole/ide-helper',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'symfony/config' => array(
             'pretty_version' => 'v6.2.0',
             'version' => '6.2.0.0',
@@ -576,7 +574,7 @@
         'watish/watishweb' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '1e38502cdbab604640bea30dc0fb8cb9bd67b11b',
+            'reference' => 'fb8620378bda9ff45870d01b49f3e85bc609ce65',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
