@@ -1,9 +1,13 @@
 # Watish WEB
+
 ### 一个基于swoole驱动的多进程协程Http服务框架
+
 #### 技术栈
+
 Swoole，PHP
 
 #### 框架特点
+
 + 支持websocket
 + 通过unixsocket实现多进程间的全局变量一致
 + 支持独立进程Process
@@ -14,11 +18,14 @@ Swoole，PHP
 + 对Swoole\Table进行了封装，使用分块存储，现可以用键值对存放任何数据（包括闭包）
 
 #### 环境要求
+
 + PHP 8+
 + Swoole v5.0+
 
 ### 快速开始
+
 #### 使用Git
+
 ```shell
 git clone https://github.com/Watish/WatishWEB
 ```
@@ -238,6 +245,8 @@ Watish\Components\Includes\Route->register(string $path , array $callback , arra
 
 
 ### 中间件 Middleware
+
+注：中间件都要implement MiddlewareInterface接口
 
 #### 全局中间件
 
@@ -485,4 +494,147 @@ class TestService
 
 
 
-更新于2022-12-27 23:21 未完待续。
+### 命令 Command
+
+Command类文件存放于 **项目/src/Command/**
+
+注：Command类需要implement CommandInterface 接口
+
+命令类只能使用注解注册命令
+
+示例代码如下：
+
+```php
+<?php
+
+namespace Watish\WatishWEB\Command;
+
+use Watish\Components\Attribute\Command;
+use Watish\Components\Utils\Logger;
+
+#[Command("hello","command")]
+class HelloCommand implements CommandInterface
+{
+    public function handle(): void
+    {
+        Logger::info("Hello");
+    }
+
+}
+```
+
+上述代码，可以通过以下方式执行
+
+**swoole-cli**
+
+```shell
+swoole-cli ./bin/CoServer.php command:hello
+```
+
+**PHP**
+
+```
+php ./bin/CoServer.php command:hello
+```
+
+注解Command的用法
+
+```php
+Command(string $command , string $prefix = "command")
+```
+
+
+
+### Task 定时任务
+
+Task类存放于 **项目/src/Task/**
+
+注：所有的Task类都要implement TaskInterface
+
+Task类只支持使用**Crontab注解**注册定时任务
+
+示例代码如下：
+
+```php
+<?php
+
+namespace Watish\WatishWEB\Task;
+
+use Watish\Components\Attribute\Crontab;
+use Watish\Components\Utils\Logger;
+
+#[Crontab("* * * * *")]
+class HelloTask implements TaskInterface
+{
+    public function execute(): void
+    {
+        Logger::info("Hello","HelloTask");
+    }
+}
+```
+
+这是一个每秒都会输出Hello的定时任务
+
+Crontab注解使用方法
+
+```php
+Crontab(string $rule)
+```
+
+其中，rule为标准的**crontab表达式**
+
+
+
+### 数据库 Database
+
+注：暂只有mysql，redis（可自己加）
+
+本框架使用了连接池来维护mysql，redis连接，并于启动初完成了连接池的创建，现只需在业务逻辑中使用即可
+
+**Watish\Components\Includes\Database::mysql() ** 返回一个对Laravel查询构造器的封装（主要是改变了底层Pdo逻辑，正常使用无差异）
+
+**Watish\Components\Includes\Database::redis()** 返回一个Predis的Client
+
+**请先配置数据库！** 配置文件：**项目/config/database.php**
+
+
+
+### 其它工具
+
+框架使用了以下组件，并对某些组件进行了封装
+
+在 **Watish\Components\Constructor** 命名空间下，提供了对一些组件的快速构造
+
+#### 异步任务
+
+**AsyncTaskConstructor::make()** 异步任务投递
+
+#### 文件系统
+
+**LocalFilesystemConstructor::getFilesystem()** 本地文件系统构造器
+
+#### 表单验证
+
+**ValidatorConstructor::make(array $data , array $rules)** Validator构造器
+
+
+
+### 关于框架
+
+该框架使用了以下组件，感谢优秀的组件开发者
+
+- ext-mbstring
+- predis/predis
+- illuminate/database
+- ext-sockets
+- opis/closure
+- league/flysystem
+- ext-pdo
+- dragonmantank/cron-expression
+- league/climate
+- filp/whoops
+- ulrichsg/getopt-php
+- illuminate/validation
+- nikic/fast-route
+
+更新于2022-12-28 12:24 如有问题，请提issue，积极维护
