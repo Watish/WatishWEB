@@ -1,6 +1,6 @@
 # Watish WEB
 
-### 一个基于swoole驱动的多进程协程Http服务框架
+### 一个swoole驱动的多进程全协程的轻量Web框架
 
 #### 技术栈
 
@@ -621,7 +621,9 @@ Crontab(string $rule)
 
 ### 关于框架
 
-该框架使用了以下组件，感谢优秀的组件开发者
+#### 框架用到的组件
+
+感谢优秀的组件开发者
 
 - ext-mbstring
 - predis/predis
@@ -637,4 +639,65 @@ Crontab(string $rule)
 - illuminate/validation
 - nikic/fast-route
 
-更新于2022-12-28 12:24 如有问题，请提issue，积极维护
+#### 框架性能表现
+
+测试环境：Ubuntu22.0.4 LTS
+
+测试硬件：虚拟机(VirtualBox) 6c6t , 8192M ,开启虚拟化支持
+
+测试工具：ApacheBench
+
+```
+This is ApacheBench, Version 2.3 <$Revision: 1879490 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 127.0.0.1 (be patient)
+
+
+Server Software:        swoole-http-server
+Server Hostname:        127.0.0.1
+Server Port:            9502
+
+Document Path:          /hello/user/test
+Document Length:        20 bytes
+
+Concurrency Level:      3000
+Time taken for tests:   2.040 seconds
+Complete requests:      30000
+Failed requests:        0
+Total transferred:      7680000 bytes
+HTML transferred:       600000 bytes
+Requests per second:    14708.19 [#/sec] (mean)
+Time per request:       203.968 [ms] (mean)
+Time per request:       0.068 [ms] (mean, across all concurrent requests)
+Transfer rate:          3677.05 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0   83  17.3     85     125
+Processing:    32  109  41.6    102     380
+Waiting:        0   79  40.0     71     362
+Total:        107  193  37.8    189     457
+
+Percentage of the requests served within a certain time (ms)
+  50%    189
+  66%    200
+  75%    205
+  80%    208
+  90%    224
+  95%    236
+  98%    344
+  99%    389
+ 100%    457 (longest request)
+
+```
+
+注：不要太在意性能，真正的业务逻辑往往是复杂的，对deom进行压测并不能表明什么（图个乐）
+
+
+
+> 如果好用可以点个star，如果有问题请提issue，作者会积极维护
+>
+> 更新于2022-12-28 16:01
+
