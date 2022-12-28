@@ -693,7 +693,7 @@ Percentage of the requests served within a certain time (ms)
 
 ```
 
-注：不要太在意性能，真正的业务逻辑往往是复杂的，对deom进行压测并不能表明什么（图个乐）
+注：不要太在意性能，真正的业务逻辑往往是复杂的，对demo进行压测并不能表明什么（图个乐）
 
 
 
@@ -701,3 +701,10 @@ Percentage of the requests served within a certain time (ms)
 >
 > 更新于2022-12-28 16:01
 
+
+
+### 常见问题
+
+##### git clone下来之后怎么跑不了？
+
+请先运行一遍composer install
