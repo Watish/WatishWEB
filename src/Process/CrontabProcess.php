@@ -7,6 +7,7 @@ use Swoole\Coroutine;
 use Watish\Components\Attribute\Crontab;
 use Watish\Components\Constructor\ClassLoaderConstructor;
 use Watish\Components\Utils\AttributeLoader\AttributeLoader;
+use Watish\Components\Utils\Injector\ClassInjector;
 use Watish\Components\Utils\Logger;
 
 class CrontabProcess implements ProcessInterface
@@ -26,7 +27,7 @@ class CrontabProcess implements ProcessInterface
                 $crontab[] = [
                     "rule" => $cron_rule,
                     "cron" => $cron,
-                    "callback" => [new $class(),"execute"]
+                    "callback" => [ClassInjector::getInjectedInstance($class),"execute"]
                 ];
             }
         }
