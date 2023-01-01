@@ -4,7 +4,9 @@ namespace Watish\Components\Constructor;
 
 use Exception;
 use GetOpt\Command;
+use Swoole\Coroutine;
 use Watish\Components\Utils\AttributeLoader\AttributeLoader;
+use Watish\Components\Utils\Injector\ClassInjector;
 use Watish\Components\Utils\Logger;
 
 class CommandConstructor
@@ -34,7 +36,7 @@ class CommandConstructor
             $params = $item["attributes"][0]["params"];
             $prefix = $params[1] ?? "command";
             $command = $params[0];
-            self::registerCommand("{$prefix}:{$command}",[new $className(),"handle"]);
+            self::registerCommand("{$prefix}:{$command}",[ClassInjector::getInjectedInstance($className),"handle"]);
         }
     }
 
@@ -68,7 +70,10 @@ class CommandConstructor
         $cmd_name = $command->getName();
         if(isset(self::$cmdSet[$cmd_name]))
         {
-            call_user_func_array(self::$cmdSet[$cmd_name],[]);
+            $call_back = self::$cmdSet[$cmd_name];
+            Coroutine::create(function () use ($call_back){
+                call_user_func_array($call_back,[]);
+            });
         }
 
         exit;
