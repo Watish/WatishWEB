@@ -5,6 +5,7 @@ return  [
     "worker_num" => swoole_cpu_num(),
     "listen_host" => "0.0.0.0",
     "listen_port" => 9502,
+    "timezone" => "Asia/Shanghai",
     //Autoload Class and injector will inject classes loaded
     "class_loader" => [
         "controller" => [

@@ -39,6 +39,9 @@ LocalFilesystemConstructor::init();
 $server_config = require_once BASE_DIR .'/config/server.php';
 define("SERVER_CONFIG", $server_config);
 
+//TimeZone
+ini_set("date.timezone",$server_config["timezone"]);
+
 //DatabaseExtend Config
 $database_config = require_once BASE_DIR . "/config/database.php";
 define("DATABASE_CONFIG",$database_config);
