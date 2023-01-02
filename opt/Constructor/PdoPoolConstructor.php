@@ -38,6 +38,7 @@ class PdoPoolConstructor
             self::$capsule = $capsule;
             self::$sqlConnection = $sqlConnection;
             self::$pdoPool = $pdoPool;
+            self::$pdoPool->watching();
             Database::setSqlConnection($sqlConnection);
             Database::setPdoPool($pdoPool);
         }

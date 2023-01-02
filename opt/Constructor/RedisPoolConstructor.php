@@ -28,6 +28,7 @@ class RedisPoolConstructor
             $redisPool = null;
         }
         self::$redisPool = $redisPool;
+        self::$redisPool->watching();
         return $redisPool;
     }
 

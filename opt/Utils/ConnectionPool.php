@@ -10,17 +10,19 @@ class ConnectionPool
     private int $max_count;
     private int $min_count;
     private mixed $callback;
-    private Channel $channel;
+    private array $channel;
     private int $client_num;
     private bool $lock = false;
+    private int $live_time;
 
-    public function __construct(callable $callback , int $max_count , int $min_count )
+    public function __construct(callable $callback , int $max_count , int $min_count ,int $live_time = 360 )
     {
         $this->callback = $callback;
         $this->max_count = $max_count;
         $this->min_count = $min_count;
         $this->client_num = 0;
-        $this->channel = new Channel($max_count);
+        $this->live_time = $live_time;
+        $this->channel = [];
     }
 
     public function startPool():void
@@ -39,9 +41,13 @@ class ConnectionPool
         {
             $this->make();
         }
-        $res = $this->channel->pop();
+        $res = array_pop($this->channel);
         $this->client_num--;
-        return $res;
+        if(time() - $res["time"] > $this->live_time)
+        {
+            return $this->getClient();
+        }
+        return $res["client"];
     }
 
     public function put($client): void
@@ -55,7 +61,10 @@ class ConnectionPool
             return;
         }
         $this->client_num++;
-        $this->channel->push($client);
+        $this->channel[] = [
+            "client" => $client,
+            "time" => time()
+        ];
     }
 
     public function stats() :array
@@ -80,6 +89,12 @@ class ConnectionPool
         }
     }
 
+    private function getClient() :mixed
+    {
+        $client = ($this->callback)();
+        return $client;
+    }
+
     private function make(): void
     {
         if($this->client_num >= $this->max_count)
@@ -91,7 +106,43 @@ class ConnectionPool
         {
             return;
         }
-        $this->channel->push($client);
+        $this->channel[] = [
+            "client" => $client,
+            "time" => time()
+        ];
         $this->client_num++;
+    }
+
+    public function watching() :void
+    {
+        Coroutine::create(function (){
+            while(1)
+            {
+                Coroutine::sleep(60);
+
+                $new_channel = [];
+                foreach ($this->channel as $list_res)
+                {
+                    if(time() - $list_res["time"] >= $this->live_time)
+                    {
+                        continue;
+                    }
+                    $new_channel[] = $list_res;
+                }
+                $this->channel = $new_channel;
+                $this->client_num = count($this->channel);
+
+                if($this->client_num < $this->min_count)
+                {
+                    Logger::debug("Connection Filled","ConnectionPool");
+                    $need_num = $this->min_count - $this->client_num;
+                    for ($i=1;$i<=$need_num;$i++)
+                    {
+                        $client = $this->getClient();
+                        $this->put($client);
+                    }
+                }
+            }
+        });
     }
 }
