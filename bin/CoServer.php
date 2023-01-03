@@ -131,14 +131,21 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
         'package_eof'    => "\r\n", //设置EOF
         'hook_flags'     => SWOOLE_HOOK_ALL
     ]);
-
+    //Route Cache
+    $route_cache = new \Watish\Components\Struct\Set\Hash();
     //Handle Request
-    $server->handle('/',function (Request $request, Response $response) use ($route,$route_dispatcher,$server,$workerId){
+    $server->handle('/',function (Request $request, Response $response) use ($route,$route_dispatcher,$server,$workerId,$route_cache){
         Logger::debug("Worker #{$workerId}");
         Logger::debug($request->server["request_uri"],"Request");
         $real_path = $request->server["request_uri"];
         $request_method = $request->getMethod();
-        $route_info = $route_dispatcher->dispatch($request_method,$real_path);
+        if($route_cache->exists($real_path))
+        {
+            $route_info = $route_cache->get($real_path);
+        }else{
+            $route_info = $route_dispatcher->dispatch($request_method,$real_path);
+            $route_cache->set($real_path,$route_info);
+        }
         $struct_request = new \Watish\Components\Struct\Request($request,$route_info[2] ?? []);
         $struct_response = new \Watish\Components\Struct\Response($response);
         Context::setRequest($struct_request);
