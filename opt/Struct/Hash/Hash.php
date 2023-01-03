@@ -1,6 +1,6 @@
 <?php
 
-namespace Watish\Components\Struct\Set;
+namespace Watish\Components\Struct\Hash;
 
 class Hash
 {

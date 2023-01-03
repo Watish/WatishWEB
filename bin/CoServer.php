@@ -132,9 +132,9 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
         'hook_flags'     => SWOOLE_HOOK_ALL
     ]);
     //Route Cache
-    $route_cache = new \Watish\Components\Struct\Set\Hash();
+    $route_cache = new Watish\Components\Struct\Hash\Hash();
     //Handle Request
-    $server->handle('/',function (Request $request, Response $response) use ($route,$route_dispatcher,$server,$workerId,$route_cache){
+    $server->handle('/',function (Request $request, Response $response) use ($route,$route_dispatcher,$server,$workerId,&$route_cache){
         Logger::debug("Worker #{$workerId}");
         Logger::debug($request->server["request_uri"],"Request");
         $real_path = $request->server["request_uri"];
