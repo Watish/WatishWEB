@@ -3,6 +3,7 @@
 namespace Watish\Components\Includes;
 
 use Illuminate\Database\ConnectionInterface;
+use PDO;
 use Predis\Client;
 use Swoole\Coroutine;
 use Watish\Components\Struct\DatabaseExtend;
@@ -21,7 +22,7 @@ class Database
         return new DatabaseExtend(self::$sqlConnection,null,null,self::getPdo());
     }
 
-    public static function putPdo(\PDO $pdo) :void
+    public static function putPdo(PDO $pdo) :void
     {
         self::$pdoPool->put($pdo);
     }
@@ -30,7 +31,7 @@ class Database
     {
         $cid = Coroutine::getuid();
         $client = self::$redisPool->get();
-        self::$clientSet["redis"][$cid] = $client;
+        self::$clientSet["redis"][$cid][] = $client;
         return $client;
     }
 
@@ -39,11 +40,11 @@ class Database
         self::$redisPool->put($client);
     }
 
-    public static function getPdo() :\PDO
+    public static function getPdo() : PDO
     {
         $cid = Coroutine::getuid();
         $client = self::$pdoPool->get();
-        self::$clientSet["pdo"][$cid] = $client;
+        self::$clientSet["pdo"][$cid][] = $client;
         return $client;
     }
 
@@ -76,14 +77,18 @@ class Database
         $cid = Coroutine::getuid();
         if(isset(self::$clientSet["pdo"][$cid]))
         {
-            $client = self::$clientSet["pdo"][$cid];
-            self::$pdoPool->put($client);
+            foreach (self::$clientSet["pdo"][$cid] as $client)
+            {
+                self::$pdoPool->put($client);
+            }
             unset(self::$clientSet["pdo"][$cid]);
         }
         if(isset(self::$clientSet["redis"][$cid]))
         {
-            $client = self::$clientSet["redis"][$cid];
-            self::$redisPool->put($client);
+            foreach (self::$clientSet["redis"][$cid] as $client)
+            {
+                self::$redisPool->put($client);
+            }
             unset(self::$clientSet["redis"][$cid]);
         }
     }

@@ -2,6 +2,7 @@
 
 namespace Watish\Components\Constructor;
 
+use Swoole\Coroutine;
 use Watish\Components\Includes\Database;
 use Watish\Components\Utils\ConnectionPool;
 use Watish\Components\Utils\Logger;
@@ -18,7 +19,6 @@ class RedisPoolConstructor
         if($database_config["redis"]["enable"])
         {
             $redisPool = new ConnectionPool(function () use ($database_config){
-//                Logger::debug("Redis Started","Redis");
                 $redis = new \Predis\Client($database_config["redis"]["parameters"],$database_config["redis"]["options"]);
                 $redis->connect();
                 return $redis;
@@ -28,8 +28,17 @@ class RedisPoolConstructor
             $redisPool = null;
         }
         self::$redisPool = $redisPool;
-//        self::$redisPool->watching();
         return $redisPool;
+    }
+
+    public static function startPool() :void
+    {
+        Coroutine::create(function (){
+           self::$redisPool->startPool();
+           Coroutine::sleep(2);
+           Logger::debug("RedisPool Started","RedisPool");
+           self::$redisPool->watching();
+        });
     }
 
     /**

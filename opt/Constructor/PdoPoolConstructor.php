@@ -4,8 +4,10 @@ namespace Watish\Components\Constructor;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Connection;
+use Swoole\Coroutine;
 use Watish\Components\Includes\Database;
 use Watish\Components\Utils\ConnectionPool;
+use Watish\Components\Utils\Logger;
 use Watish\Components\Utils\Table;
 
 class PdoPoolConstructor
@@ -38,10 +40,19 @@ class PdoPoolConstructor
             self::$capsule = $capsule;
             self::$sqlConnection = $sqlConnection;
             self::$pdoPool = $pdoPool;
-//            self::$pdoPool->watching();
             Database::setSqlConnection($sqlConnection);
             Database::setPdoPool($pdoPool);
         }
+    }
+
+    public static function startPool() :void
+    {
+        Coroutine::create(function (){
+            self::$pdoPool->startPool();
+            Coroutine::sleep(2);
+            Logger::debug("Pdo Pool Started","PdoPool");
+            self::$pdoPool->watching();
+        });
     }
 
     /**

@@ -58,7 +58,7 @@ $capsule = PdoPoolConstructor::getCapsule();
 $pdoPool = PdoPoolConstructor::getPdoPool();
 
 //Init RedisPool
-$redisPool = RedisPoolConstructor::init();
+RedisPoolConstructor::init();
 
 //Init ClassLoader and Inject
 ClassLoaderConstructor::init();
@@ -98,8 +98,8 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
     ClassInjector::init();
 
     //Init DatabaseExtend in worker process
-    PdoPoolConstructor::init();
-    RedisPoolConstructor::init();
+    PdoPoolConstructor::startPool();
+    RedisPoolConstructor::startPool();
 
     //Init DatabaseExtend
     if(DATABASE_CONFIG["mysql"]["enable"])
