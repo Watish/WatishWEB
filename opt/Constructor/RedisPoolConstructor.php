@@ -37,7 +37,7 @@ class RedisPoolConstructor
            self::$redisPool->startPool();
            Coroutine::sleep(2);
            Logger::debug("RedisPool Started","RedisPool");
-           self::$redisPool->watching();
+//           self::$redisPool->watching();
         });
     }
 

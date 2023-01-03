@@ -41,7 +41,8 @@ class CrontabProcess implements ProcessInterface
             Coroutine::create(function () use ($cron_id, $cron, $rule, $callback) {
                 Logger::debug($rule, "Crontab{$cron_id}");
                 while (1) {
-                    if ($cron->isDue()) {
+                    $next_date = $cron->getNextRunDate('now',0,true,SERVER_CONFIG["timezone"])->format("Y-m-d H:i:s");
+                    if ($next_date == date("Y-m-d H:i:s")) {
                         call_user_func_array($callback, []);
                     }
                     Coroutine::sleep(1);

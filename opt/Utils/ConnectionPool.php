@@ -49,15 +49,20 @@ class ConnectionPool
         {
             return $this->getClient();
         }
-        if($this->client_num <= 0)
+        while(1)
         {
-            $this->make();
-        }
-        $res = $this->channel->pop();
-        $this->client_num--;
-        if(time() - $res["time"] > $this->live_time)
-        {
-            return $this->getClient();
+            if($this->client_num <= 0)
+            {
+                $this->make();
+            }
+            $res = $this->channel->pop();
+            $this->client_num--;
+            if(time() - $res["time"] > $this->live_time)
+            {
+                continue;
+            }else{
+                break;
+            }
         }
         return $res["client"];
     }
@@ -78,10 +83,10 @@ class ConnectionPool
             return;
         }
         $this->client_num++;
-        $this->channel[] = [
+        $this->channel->push([
             "client" => $client,
             "time" => time()
-        ];
+        ]);
     }
 
     public function stats() :array

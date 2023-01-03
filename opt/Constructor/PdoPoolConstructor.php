@@ -51,7 +51,7 @@ class PdoPoolConstructor
             self::$pdoPool->startPool();
             Coroutine::sleep(2);
             Logger::debug("Pdo Pool Started","PdoPool");
-            self::$pdoPool->watching();
+//            self::$pdoPool->watching();
         });
     }
 
