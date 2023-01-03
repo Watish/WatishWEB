@@ -50,7 +50,7 @@ class ConnectionPool
         return $res["client"];
     }
 
-    public function put($client): void
+    public function put(&$client): void
     {
         if(is_null($client))
         {
@@ -58,6 +58,7 @@ class ConnectionPool
         }
         if($this->client_num >= $this->max_count)
         {
+            unset($client);
             return;
         }
         $this->client_num++;
@@ -125,6 +126,7 @@ class ConnectionPool
                 {
                     if(time() - $list_res["time"] >= $this->live_time)
                     {
+                        unset($list_res["client"]);
                         continue;
                     }
                     $new_channel[] = $list_res;
