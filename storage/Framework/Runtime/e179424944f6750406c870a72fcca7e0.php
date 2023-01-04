@@ -10,7 +10,7 @@ use Watish\Components\Utils\Aspect\AspectContainer;
 
 
 
-class PROXY_89ea81671462743_TestAspect implements AspectInterface
+class PROXY_8b9b61672803576_TestAspect implements AspectInterface
 
 {
 

@@ -14,7 +14,7 @@ use Watish\Components\Utils\Logger;
 
 #[Command("hello","command")]
 
-class PROXY_8b02a1671462743_HelloCommand implements CommandInterface
+class PROXY_97cfd1672803576_HelloCommand implements CommandInterface
 
 {
 

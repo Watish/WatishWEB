@@ -8,11 +8,13 @@ namespace Watish\WatishWEB\Task;
 
 use Watish\Components\Attribute\Crontab;
 
+use Watish\Components\Utils\Logger;
+
 
 
 #[Crontab("* * * * *")]
 
-class PROXY_8abe61671462743_HelloTask implements TaskInterface
+class PROXY_9441f1672803576_HelloTask implements TaskInterface
 
 {
 
@@ -20,7 +22,7 @@ class PROXY_8abe61671462743_HelloTask implements TaskInterface
 
     {
 
-//        Logger::debug("Hello","HelloTask");
+        Logger::info("Hello","HelloTask");
 
     }
 

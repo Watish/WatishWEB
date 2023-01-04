@@ -6,9 +6,11 @@ namespace Watish\WatishWEB\Service;
 
 
 
-class PROXY_8a70a1671462743_BaseService
+class PROXY_8c9b91672803576_BaseService
 
 {
+
+
 
     public function toArray(mixed $data): array
 
