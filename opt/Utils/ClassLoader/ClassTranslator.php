@@ -48,7 +48,7 @@ class ClassTranslator
                 }
                 $r = $this->remove_type_declare($r);
             }
-            $this->proxy_code_content .= $r . "\r\n";
+            $this->proxy_code_content .= $r . "\n";
         }
         fclose($resource);
     }

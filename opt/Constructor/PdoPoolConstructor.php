@@ -36,6 +36,8 @@ class PdoPoolConstructor
             },(int)($database_config["mysql"]["max_pool_count"]/$server_config["worker_num"])+2,(int)($database_config["mysql"]["min_pool_count"]/$server_config["worker_num"])+1);
             $capsule =  new Capsule;
             $capsule->addConnection($database_config["mysql"]);
+            $capsule->setAsGlobal();
+            $capsule->bootEloquent();
             $sqlConnection = $capsule->getConnection("default");
             self::$capsule = $capsule;
             self::$sqlConnection = $sqlConnection;

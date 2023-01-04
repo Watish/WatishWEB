@@ -8,6 +8,7 @@ use Watish\Components\Attribute\Path;
 use Watish\Components\Attribute\Prefix;
 use Watish\Components\Struct\Request;
 use Watish\WatishWEB\Middleware\TestMiddleware;
+use Watish\WatishWEB\Model\User;
 use Watish\WatishWEB\Service\BaseService;
 
 #[Prefix('/hello')]
@@ -30,6 +31,17 @@ class HelloController
     {
         return [
             "msg" => "hello ".$request->route('name')
+        ];
+    }
+
+    #[Path('/user/info/{user_id}')]
+    public function user_info(Request $request):array
+    {
+        $user_id = $request->route("user_id");
+        $res = User::where("user_id",$user_id)->first();
+        return [
+            "Ok" => (bool)$res,
+            "Data" => $res ? $res : null
         ];
     }
 }
