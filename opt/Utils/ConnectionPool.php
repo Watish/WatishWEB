@@ -159,9 +159,9 @@ class ConnectionPool
                 $this->qps = 0;
                 if($qps%60>0)
                 {
-                    $qps = (int)$qps/60 + 1;
+                    $qps = (int)($qps/60) + 1;
                 }else{
-                    $qps = (int)$qps/60;
+                    $qps = (int)($qps/60);
                 }
                 Logger::debug("{$this->name} qps:{$qps}",$this->name);
                 if($qps > $this->min_count)
@@ -169,6 +169,7 @@ class ConnectionPool
                     // qps > client_num >= min_count
                     if($this->client_num <= $this->min_count)
                     {
+                        Logger::debug("{$this->name} fill",$this->name);
                         while(1)
                         {
                             if($this->channel->isFull())

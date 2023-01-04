@@ -12,8 +12,8 @@ return  [
         'charset' => 'utf8',
         'collation' => 'utf8_unicode_ci',
         'prefix' => '',
-        "max_pool_count" => swoole_cpu_num()*10,
-        "min_pool_count" => swoole_cpu_num()
+        "max_pool_count" => swoole_cpu_num()*8,
+        "min_pool_count" => swoole_cpu_num()*4
     ],
     "redis" => [
         "enable" => true,
