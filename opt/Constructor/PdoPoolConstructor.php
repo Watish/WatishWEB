@@ -33,7 +33,7 @@ class PdoPoolConstructor
 
             $pdoPool = new ConnectionPool(function () use ($dsn,$user,$password){
                 return new \PDO($dsn,$user,$password);
-            },(int)($database_config["mysql"]["max_pool_count"]/$server_config["worker_num"])+2,(int)($database_config["mysql"]["min_pool_count"]/$server_config["worker_num"])+1);
+            },(int)($database_config["mysql"]["max_pool_count"]/$server_config["worker_num"])+2,(int)($database_config["mysql"]["min_pool_count"]/$server_config["worker_num"])+1,360,'pdo_pool');
             $capsule =  new Capsule;
             $capsule->addConnection($database_config["mysql"]);
             $capsule->setAsGlobal();
@@ -53,7 +53,7 @@ class PdoPoolConstructor
             self::$pdoPool->startPool();
             Coroutine::sleep(2);
             Logger::debug("Pdo Pool Started","PdoPool");
-//            self::$pdoPool->watching();
+            self::$pdoPool->watching();
         });
     }
 

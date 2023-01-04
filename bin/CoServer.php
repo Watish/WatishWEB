@@ -5,9 +5,6 @@ use Swoole\Coroutine\Http\Server;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\Lock;
-use Watish\Components\Attribute\Inject;
-use Watish\Components\Attribute\Path;
-use Watish\Components\Attribute\Prefix;
 use Watish\Components\Constructor\AsyncTaskConstructor;
 use Watish\Components\Constructor\ClassLoaderConstructor;
 use Watish\Components\Constructor\CommandConstructor;
@@ -20,11 +17,9 @@ use Watish\Components\Constructor\ViewConstructor;
 use Watish\Components\Constructor\WoopsConstructor;
 use Watish\Components\Includes\Database;
 use Watish\Components\Includes\Context;
-use Watish\Components\Utils\AttributeLoader\AttributeCollector;
 use Watish\Components\Utils\Injector\ClassInjector;
 use Watish\Components\Utils\Logger;
 use Watish\Components\Utils\Table;
-use Watish\WatishWEB\Controller\Http\IndexController;
 
 //Define project base dir
 const BASE_DIR = __DIR__ . "/../";

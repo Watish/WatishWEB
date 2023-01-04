@@ -4,6 +4,7 @@ namespace Watish\Components\Utils;
 
 use Swoole\Coroutine;
 use Swoole\Coroutine\Channel;
+use Watish\Components\Utils\Lock\MultiLock;
 
 class ConnectionPool
 {
@@ -15,14 +16,17 @@ class ConnectionPool
     private bool $started = false;
     private bool $lock = false;
     private int $live_time;
+    private int $qps = 0;
+    private string $name;
 
-    public function __construct(callable $callback , int $max_count , int $min_count ,int $live_time = 360 )
+    public function __construct(callable $callback , int $max_count , int $min_count ,int $live_time = 360,string $name="connection_pool" )
     {
         $this->callback = $callback;
         $this->max_count = $max_count;
         $this->min_count = $min_count;
         $this->client_num = 0;
         $this->live_time = $live_time;
+        $this->name = $name;
     }
 
     public function startPool():void
@@ -64,6 +68,7 @@ class ConnectionPool
                 break;
             }
         }
+        $this->qps++;
         return $res["client"];
     }
 
@@ -122,11 +127,17 @@ class ConnectionPool
         {
             return;
         }
+        if($this->channel->isFull())
+        {
+            return;
+        }
         if($this->client_num >= $this->max_count)
         {
             return;
         }
+        MultiLock::lock($this->name);
         $client = $this->getClient();
+        MultiLock::unlock($this->name);
         if(!$client)
         {
             return;
@@ -144,11 +155,48 @@ class ConnectionPool
             while(1)
             {
                 Coroutine::sleep(60);
-
-                if($this->client_num < $this->min_count)
+                $qps = $this->qps;
+                $this->qps = 0;
+                if($qps%60>0)
                 {
-                    Logger::debug("Connection Filled","ConnectionPool");
-                    $this->make();
+                    $qps = (int)$qps/60 + 1;
+                }else{
+                    $qps = (int)$qps/60;
+                }
+                Logger::debug("{$this->name} qps:{$qps}",$this->name);
+                if($qps > $this->min_count)
+                {
+                    // qps > client_num >= min_count
+                    if($this->client_num <= $this->min_count)
+                    {
+                        while(1)
+                        {
+                            if($this->channel->isFull())
+                            {
+                                break;
+                            }
+                            if($this->client_num >= $qps)
+                            {
+                                break;
+                            }
+                            $this->make();
+                        }
+                    }
+                }else{
+                    // client_num > min_count > qps
+                    if($this->client_num > $this->min_count)
+                    {
+                        Logger::debug("{$this->name} remove",$this->name);
+                        while(1)
+                        {
+                            if($this->client_num<=$this->min_count)
+                            {
+                                break;
+                            }
+                            $client = $this->get();
+                            unset($client);
+                        }
+                    }
                 }
             }
         });

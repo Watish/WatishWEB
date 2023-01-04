@@ -22,7 +22,7 @@ class RedisPoolConstructor
                 $redis = new \Predis\Client($database_config["redis"]["parameters"],$database_config["redis"]["options"]);
                 $redis->connect();
                 return $redis;
-            },(int)($database_config["redis"]["pool_max_count"]/$server_config["worker_num"])+2,(int)($database_config["redis"]["pool_max_count"]/$server_config["worker_num"])+1);
+            },(int)($database_config["redis"]["pool_max_count"]/$server_config["worker_num"])+2,(int)($database_config["redis"]["pool_max_count"]/$server_config["worker_num"])+1,360,'redis_pool');
             Database::setRedisPool($redisPool);
         }else{
             $redisPool = null;
@@ -37,7 +37,7 @@ class RedisPoolConstructor
            self::$redisPool->startPool();
            Coroutine::sleep(2);
            Logger::debug("RedisPool Started","RedisPool");
-//           self::$redisPool->watching();
+           self::$redisPool->watching();
         });
     }
 
