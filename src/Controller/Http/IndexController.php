@@ -6,6 +6,7 @@ use Watish\Components\Attribute\Inject;
 use Watish\Components\Attribute\Middleware;
 use Watish\Components\Attribute\Path;
 use Watish\Components\Attribute\Prefix;
+use Watish\Components\Constructor\ViewConstructor;
 use Watish\Components\Includes\Context;
 use Watish\Components\Struct\Request;
 use Watish\Components\Utils\Table;
@@ -18,12 +19,12 @@ class IndexController
     #[Inject(BaseService::class)]
     public BaseService $baseService;
 
-    public function index(Request $request): array
+    #[Path('/')]
+    public function index(Request $request): string
     {
-        return [
-            "Method" => $request->getMethod(),
-            "Params" => $request->all()
-        ];
+        return ViewConstructor::render('index',[
+            "title" => "Watish Web"
+        ]);
     }
 
     #[Path("/hello/{name}")]

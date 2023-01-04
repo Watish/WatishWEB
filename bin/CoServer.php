@@ -16,6 +16,7 @@ use Watish\Components\Constructor\PdoPoolConstructor;
 use Watish\Components\Constructor\ProcessConstructor;
 use Watish\Components\Constructor\RedisPoolConstructor;
 use Watish\Components\Constructor\RouteConstructor;
+use Watish\Components\Constructor\ViewConstructor;
 use Watish\Components\Constructor\WoopsConstructor;
 use Watish\Components\Includes\Database;
 use Watish\Components\Includes\Context;
@@ -86,6 +87,9 @@ $pool_worker_num = $server_config["worker_num"];
 $pool = new Swoole\Process\Pool($pool_worker_num,1,0,true);
 $pool->set(['enable_coroutine' => true]);
 Context::setWorkerNum($pool_worker_num);
+
+//Init ViewEngine
+ViewConstructor::init();
 
 $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($processNameSet,$route,$pool_worker_num,$server_config) {
 
