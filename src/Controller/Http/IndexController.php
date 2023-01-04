@@ -2,6 +2,7 @@
 
 namespace Watish\WatishWEB\Controller\Http;
 
+use Swoole\Coroutine;
 use Watish\Components\Attribute\Inject;
 use Watish\Components\Attribute\Middleware;
 use Watish\Components\Attribute\Path;
@@ -9,6 +10,7 @@ use Watish\Components\Attribute\Prefix;
 use Watish\Components\Constructor\ViewConstructor;
 use Watish\Components\Includes\Context;
 use Watish\Components\Struct\Request;
+use Watish\Components\Utils\Logger;
 use Watish\Components\Utils\Table;
 use Watish\WatishWEB\Middleware\CorsMiddleware;
 use Watish\WatishWEB\Service\BaseService;
@@ -30,8 +32,14 @@ class IndexController
     #[Path("/hello/{name}")]
     public function hello_somebody(Request $request):array
     {
+        $name = $request->route("name");
+        Coroutine::create(function ()use($name){
+            $worker_id = Context::getWorkerId();
+            Context::global_Set("Hello",$worker_id.Coroutine::getCid().$name);
+        });
         return [
-            "msg" => "hello ".$request->route("name")
+            "msg" => "hello ".$name,
+            "data" => Context::global_Get("Hello")
         ];
     }
 }

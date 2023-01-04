@@ -121,9 +121,6 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
     Context::setWorkerPool($pool);
     Context::setWorkerId($workerId);
 
-    //Init Context Lock
-    Context::setLock(new Lock(SWOOLE_MUTEX));
-
     $server = new Server($server_config["listen_host"], $server_config["listen_port"], false , true);
     $server->set([
         'open_eof_check' => true,   //打开EOF检测

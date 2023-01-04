@@ -6,6 +6,8 @@ use Exception;
 use Swoole\Coroutine;
 use Watish\Components\Struct\Request;
 use Watish\Components\Struct\Response;
+use Watish\Components\Utils\Lock\GlobalLock;
+use Watish\Components\Utils\Lock\MultiLock;
 use Watish\Components\Utils\Logger;
 use Watish\Components\Utils\ProcessSignal;
 use Watish\Components\Utils\Worker\WorkerSignal;
@@ -25,15 +27,7 @@ class Context
      * @var null
      */
     private static $workerPool;
-    private static $lock;
 
-    /**
-     * @param mixed $lock
-     */
-    public static function setLock(mixed $lock): void
-    {
-        self::$lock = $lock;
-    }
     /**
      * @param null $workerPool
      */
@@ -47,7 +41,7 @@ class Context
         $cid = self::getCoUid();
         $worker_id = self::$workerId;
         Logger::debug("Signaling Workers From Cid #$cid","Worker#{$worker_id}");
-        self::$lock->lock();
+        GlobalLock::lock('signalWorker');
         for($i=0;$i<(self::$workerNum);$i++)
         {
             if($i == self::$workerId)
@@ -58,7 +52,7 @@ class Context
             $socket = $process->exportSocket();
             $socket->send($signal);
         }
-        self::$lock->unlock();
+        GlobalLock::unlock("signalWorker");
     }
 
     public static function GetGlobalSet():array
