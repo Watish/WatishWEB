@@ -2,6 +2,7 @@
 
 namespace Watish\Components\Constructor;
 
+use Watish\Components\Utils\Lock\MultiLock;
 use Watish\Components\Utils\ProcessSignal;
 
 class AsyncTaskConstructor
@@ -18,7 +19,9 @@ class AsyncTaskConstructor
         $taskProcessList = self::$taskProcessList;
         shuffle($taskProcessList);
         $taskProcess = $taskProcessList[0];
+        MultiLock::lock("async_task");
         $socket = $taskProcess->exportSocket();
         $socket->send(ProcessSignal::AsyncTask($closure));
+        MultiLock::unlock("async_task");
     }
 }

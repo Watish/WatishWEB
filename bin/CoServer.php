@@ -23,7 +23,8 @@ use Watish\Components\Utils\Table;
 
 //Define project base dir
 const BASE_DIR = __DIR__ . "/../";
-define("CPU_SLEEP_TIME", (1 / swoole_cpu_num())*1000 );
+define("CPU_SLEEP_TIME", (1 / swoole_cpu_num()) );
+define("CPU_USLEEP_TIME", (1 / swoole_cpu_num())*1000);
 
 //Composer
 require_once BASE_DIR . '/vendor/autoload.php';
