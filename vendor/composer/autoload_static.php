@@ -71,6 +71,7 @@ class ComposerStaticInitecb5d735297edb621178a3074ca6eb20
             'Predis\\' => 7,
             'PhpParser\\' => 10,
             'PHPStan\\PhpDocParser\\' => 21,
+            'PHPMailer\\PHPMailer\\' => 20,
         ),
         'O' => 
         array (
@@ -269,6 +270,10 @@ class ComposerStaticInitecb5d735297edb621178a3074ca6eb20
         'PHPStan\\PhpDocParser\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpstan/phpdoc-parser/src',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
         'Opis\\Closure\\' => 
         array (
