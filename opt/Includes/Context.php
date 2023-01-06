@@ -38,21 +38,23 @@ class Context
 
     private static function signalWorker(string $signal): void
     {
-        $cid = self::getCoUid();
-        $worker_id = self::$workerId;
-        Logger::debug("Signaling Workers From Cid #$cid","Worker#{$worker_id}");
-        GlobalLock::lock('signalWorker');
-        for($i=0;$i<(self::$workerNum);$i++)
-        {
-            if($i == self::$workerId)
+        Coroutine::create(function () use ($signal){
+            $cid = self::getCoUid();
+            $worker_id = self::$workerId;
+            Logger::debug("Signaling Workers From Cid #$cid","Worker#{$worker_id}");
+            GlobalLock::lock('signalWorker');
+            for($i=0;$i<(self::$workerNum);$i++)
             {
-                continue;
+                if($i == self::$workerId)
+                {
+                    continue;
+                }
+                $process = self::$workerPool->getProcess($i);
+                $socket = $process->exportSocket();
+                $socket->send($signal);
             }
-            $process = self::$workerPool->getProcess($i);
-            $socket = $process->exportSocket();
-            $socket->send($signal);
-        }
-        GlobalLock::unlock("signalWorker");
+            GlobalLock::unlock("signalWorker");
+        });
     }
 
     public static function GetGlobalSet():array
