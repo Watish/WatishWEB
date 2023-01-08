@@ -89,6 +89,10 @@ ViewConstructor::init();
 
 $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($processNameSet,$route,$pool_worker_num,$server_config) {
 
+    Coroutine::set([
+        'enable_preemptive_scheduler' => true
+    ]);
+
     //Init Woops
     WoopsConstructor::init();
 
@@ -244,39 +248,6 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
 
         Context::reset();
     });
-    //Watching Process By Single
-    Coroutine::create(function() use ($pool,$pool_worker_num,$workerId,&$processNameSet){
-        if($workerId !== $pool_worker_num-1)
-        {
-            return;
-        }
-        while(1)
-        {
-            $socketNameSet = [];
-            foreach ($processNameSet as $name => $processList)
-            {
-                $index = 0;
-                foreach ($processList as $process)
-                {
-                    $index++;
-                    if(!isset($socketNameSet["{$name}-{$index}"]) or !$socketNameSet["{$name}-{$index}"])
-                    {
-                        $socket = $process->exportSocket();
-                        $socketNameSet["{$name}-{$index}"] = $socket;
-                    }else{
-                        $socket = $socketNameSet["{$name}-{$index}"];
-                    }
-
-                    $receive = $socket->recv();
-                    if($receive)
-                    {
-                        Logger::debug("From Process $name Receive: $receive");
-                    }
-                }
-            }
-            Swoole\Coroutine::sleep(CPU_SLEEP_TIME);
-        }
-    });
 
     //Watching Worker Process
     Coroutine::create(function() use (&$worker_process) {
@@ -284,24 +255,24 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
         $worker_id = Context::getWorkerId();
         Logger::debug("Worker #{$worker_id} Cid #{$cid} Started");
         $socket = $worker_process->exportSocket();
-        while (1)
-        {
-            $socket = $worker_process->exportSocket();
-            $rec = $socket->recv();
-            if($rec)
+        Coroutine::create(function ()use ($socket){
+            while (1)
             {
-                try{
-                    $handler = new \Watish\Components\Utils\Worker\SignalHandler($rec);
-                    $handler->handle();
-                }catch (Exception $e)
+                $rec = $socket->recv();
+                if($rec)
                 {
-                    Logger::error($e->getMessage());
+                    try{
+                        $handler = new \Watish\Components\Utils\Worker\SignalHandler($rec);
+                        $handler->handle();
+                    }catch (Exception $e)
+                    {
+                        Logger::error($e->getMessage());
+                    }
                 }
+                Coroutine::sleep(CPU_SLEEP_TIME);
             }
-            Swoole\Coroutine::sleep(CPU_SLEEP_TIME);
-        }
+        });
     });
-
     Context::setServ($server);
     $server->start();
 });

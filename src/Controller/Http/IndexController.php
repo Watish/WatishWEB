@@ -32,8 +32,7 @@ class IndexController
             Context::global_Set("Hello",$worker_id.Coroutine::getCid().$name);
         });
         return [
-            "msg" => "hello ".$name,
-            "data" => Context::global_Get("Hello")
+            "msg" => "hello ".$name
         ];
     }
 }
