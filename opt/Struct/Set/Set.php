@@ -4,8 +4,8 @@ namespace Watish\Components\Struct\Set;
 
 class Set
 {
-    private int $num;
-    private array $set;
+    private int $num = 0;
+    private array $set = [];
 
     public function __construct()
     {
@@ -16,7 +16,7 @@ class Set
     public function set(string $key) :bool
     {
         $this->num++;
-        $this->set[$key] = null;
+        $this->set[$key] = 1;
         return true;
     }
 
@@ -32,11 +32,11 @@ class Set
 
     public function del(string $key) :void
     {
-        if(!isset($this->data[$key]))
+        if(!isset($this->set[$key]))
         {
             return;
         }
-        unset($this->data[$key]);
+        unset($this->set[$key]);
         $this->num--;
     }
 
