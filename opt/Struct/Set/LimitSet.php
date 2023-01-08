@@ -22,7 +22,7 @@ class LimitSet
             return false;
         }
         $this->num++;
-        $this->set[$key] = null;
+        $this->set[$key] = 1;
         return true;
     }
 
@@ -43,11 +43,11 @@ class LimitSet
 
     public function del(string $key) :void
     {
-        if(!isset($this->data[$key]))
+        if(!isset($this->set[$key]))
         {
             return;
         }
-        unset($this->data[$key]);
+        unset($this->set[$key]);
         $this->num--;
     }
 
