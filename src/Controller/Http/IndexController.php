@@ -8,6 +8,7 @@ use Watish\Components\Attribute\Path;
 use Watish\Components\Constructor\ViewConstructor;
 use Watish\Components\Includes\Context;
 use Watish\Components\Struct\Request;
+use Watish\Components\Struct\SharedMemory\TempList;
 use Watish\WatishWEB\Service\BaseService;
 
 class IndexController
@@ -27,10 +28,6 @@ class IndexController
     public function hello_somebody(Request $request):array
     {
         $name = $request->route("name");
-        Coroutine::create(function ()use($name){
-            $worker_id = Context::getWorkerId();
-            Context::global_Set("Hello",$worker_id.Coroutine::getCid().$name);
-        });
         return [
             "msg" => "hello ".$name
         ];
