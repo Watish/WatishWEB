@@ -6,68 +6,55 @@ use Swoole\Coroutine;
 
 class UnlimitedChannel
 {
-    private static array $channelHash = [];
-    private static array $waitHash = [];
+    private array $channelHash = [];
+    private array $waitHash = [];
 
-    public static function push(string $name,mixed $data) :void
+    public function push(mixed $data) :void
     {
-        self::init($name);
         $need_resume = false;
-        if(empty(self::$channelHash[$name]))
+        if(empty($this->channelHash))
         {
-            $yield_cid = array_pop(self::$waitHash[$name]);
+            $yield_cid = array_pop($this->waitHash);
             $need_resume = (bool)$yield_cid;
         }
-        self::$channelHash[$name][] = $data;
+        array_unshift($this->channelHash,$data);
+//        $this->channelHash[] = $data;
         if($need_resume)
         {
             Coroutine::resume($yield_cid);
         }
     }
 
-    public static function pop(string $name)
+    public function pop()
     {
-        self::init($name);
         $cid = Coroutine::getCid();
-        if(empty(self::$channelHash[$name]))
+        if(empty($this->channelHash))
         {
-            self::$waitHash[$name][] = $cid;
+            $this->waitHash[] = $cid;
             Coroutine::yield();
         }
-        return array_pop(self::$channelHash[$name]);
+        return array_pop($this->channelHash);
     }
 
-    public function isEmpty(string $name) :bool
+    public function isEmpty() :bool
     {
-        return empty(self::$channelHash[$name]);
+        return empty($this->channelHash);
     }
 
-    public function length(string $name) :int
+    public function length() :int
     {
-        return isset(self::$channelHash[$name]) ? count(self::$channelHash[$name]) : 0;
+        return isset($this->channelHash) ? count($this->channelHash) : 0;
     }
 
-    public function close(string $name): void
+    public function close(): void
     {
-        self::$channelHash[$name] = [];
-        if(isset(self::$waitHash[$name]))
+        $this->channelHash = [];
+        if(isset($this->waitHash))
         {
-            foreach (self::$waitHash[$name] as $cid)
+            foreach ($this->waitHash as $cid)
             {
                 Coroutine::resume($cid);
             }
-        }
-    }
-
-    private static function init(string $name) :void
-    {
-        if(!isset(self::$channelHash[$name]))
-        {
-            self::$channelHash[$name] = [];
-        }
-        if(!isset(self::$waitHash[$name]))
-        {
-            self::$waitHash[$name] = [];
         }
     }
 }

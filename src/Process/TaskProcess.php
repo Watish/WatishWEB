@@ -4,6 +4,7 @@ namespace Watish\WatishWEB\Process;
 
 use Swoole\Coroutine;
 use Watish\Components\Struct\Channel\UnlimitedChannel;
+use Watish\Components\Struct\Channel\UnlimitedStaticChannel;
 use Watish\Components\Utils\ProcessSignal;
 
 class TaskProcess implements ProcessInterface
@@ -21,14 +22,14 @@ class TaskProcess implements ProcessInterface
                     }
                     $receive = ProcessSignal::Parse($receive);
                     if ($receive["TYPE"] == "AsyncTask") {
-                        UnlimitedChannel::push("AsyncTask",$receive);
+                        UnlimitedStaticChannel::push("AsyncTask",$receive);
                     }
                 }
             });
             Coroutine::create(function (){
                 while (1)
                 {
-                    $receive = UnlimitedChannel::pop("AsyncTask");
+                    $receive = UnlimitedStaticChannel::pop("AsyncTask");
                     Coroutine::create(function () use ($receive) {
                         $closure = @unserialize($receive["CLOSURE"]);
                         $closure();

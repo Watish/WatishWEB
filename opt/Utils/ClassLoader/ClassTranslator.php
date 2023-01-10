@@ -25,7 +25,6 @@ class ClassTranslator
         $this->start_line = $reflectionClass->getStartLine();
         $this->end_line = $reflectionClass->getEndLine();
         $this->short_name = $reflectionClass->getShortName();
-        Logger::debug("File:{$this->filename},Start:{$this->start_line},End:{$this->end_line},Class:{$this->short_name}");
     }
 
     public function translate(): void
@@ -59,6 +58,8 @@ class ClassTranslator
         $file_system = LocalFilesystemConstructor::getFilesystem();
         $file_path = "/storage/Framework/Runtime/{$random_file_name}";
         $file_system->write("/storage/Framework/Runtime/{$random_file_name}",$this->proxy_code_content);
+        Logger::debug("File:{$this->filename},Start:{$this->start_line},End:{$this->end_line},Class:{$this->short_name}");
+        Logger::debug("/storage/Framework/Runtime/{$random_file_name}");
         require BASE_DIR . $file_path;
     }
 

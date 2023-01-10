@@ -1,7 +1,7 @@
 <?php
 
 return  [
-    "debug_mode" => false,
+    "debug_mode" => true,
     "worker_num" => swoole_cpu_num(),
     "listen_host" => "0.0.0.0",
     "listen_port" => 9502,

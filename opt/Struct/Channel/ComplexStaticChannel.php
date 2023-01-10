@@ -4,7 +4,7 @@ namespace Watish\Components\Struct\Channel;
 
 use Swoole\Coroutine;
 
-class ComplexChannel
+class ComplexStaticChannel
 {
     private static array $task_list = [];
     private static array $result_hash = [];
@@ -21,10 +21,14 @@ class ComplexChannel
             $yield_cid = array_pop(self::$wait_list[$name]);
             $need_resume = (bool)$yield_cid;
         }
-        self::$task_list[$name][] = [
+        array_unshift(self::$task_list[$name],[
             "cid" => Coroutine::getCid(),
             "data" => $data
-        ];
+        ]);
+//        self::$task_list[$name][] = [
+//            "cid" => Coroutine::getCid(),
+//            "data" => $data
+//        ];
         if($need_resume)
         {
             Coroutine::resume($yield_cid);

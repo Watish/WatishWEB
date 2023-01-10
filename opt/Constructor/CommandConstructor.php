@@ -72,6 +72,9 @@ class CommandConstructor
         {
             $call_back = self::$cmdSet[$cmd_name];
             Coroutine::create(function () use ($call_back){
+                Coroutine::set([
+                    "enable_deadlock_check" => false
+                ]);
                 call_user_func_array($call_back,[]);
             });
         }

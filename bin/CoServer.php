@@ -59,6 +59,8 @@ RedisPoolConstructor::init();
 
 //Init ClassLoader and Inject
 ClassLoaderConstructor::init();
+//Init Injector and preCache all class loader
+ClassInjector::init();
 
 //Init Commando
 CommandConstructor::init();
@@ -87,19 +89,16 @@ Context::setWorkerNum($pool_worker_num);
 //Init ViewEngine
 ViewConstructor::init();
 
+//Init Woops
+WoopsConstructor::init();
+
 $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($processNameSet,$route,$pool_worker_num,$server_config) {
 
     Coroutine::set([
         'enable_preemptive_scheduler' => true
     ]);
 
-    //Init Woops
-    WoopsConstructor::init();
-
     $route_dispatcher = $route->get_dispatcher();
-
-    //Init Injector and preCache all class loader
-    ClassInjector::init();
 
     //Init DatabaseExtend in worker process
     PdoPoolConstructor::startPool();
