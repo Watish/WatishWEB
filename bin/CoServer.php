@@ -50,9 +50,6 @@ Table::set("database_config",$database_config);
 
 //Init Mysql Pool And QueryBuilder
 PdoPoolConstructor::init();
-$sqlConnection = PdoPoolConstructor::getSqlConnection();
-$capsule = PdoPoolConstructor::getCapsule();
-$pdoPool = PdoPoolConstructor::getPdoPool();
 
 //Init RedisPool
 RedisPoolConstructor::init();

@@ -33,6 +33,10 @@ class RedisPoolConstructor
 
     public static function startPool() :void
     {
+        if(!DATABASE_CONFIG["redis"]["enable"])
+        {
+            return;
+        }
         Coroutine::create(function (){
            self::$redisPool->startPool();
            Coroutine::sleep(2);

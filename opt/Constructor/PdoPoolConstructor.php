@@ -29,7 +29,7 @@ class PdoPoolConstructor
             $database = $database_config["mysql"]["database"];
             $charset = $database_config["mysql"]["charset"];
             $collation = $database_config["mysql"]["collation"];
-            $dsn = "mysql:host={$host};dbname={$database};charset={$charset};collation={$collation}";
+            $dsn = "mysql:host={$host};dbname={$database};charset={$charset};collation={$collation};port={$port}";
 
             $pdoPool = new ConnectionPool(function () use ($dsn,$user,$password){
                 return new \PDO($dsn,$user,$password);
@@ -49,6 +49,10 @@ class PdoPoolConstructor
 
     public static function startPool() :void
     {
+        if(!DATABASE_CONFIG["mysql"]["enable"])
+        {
+            return;
+        }
         Coroutine::create(function (){
             self::$pdoPool->startPool();
             Coroutine::sleep(2);
