@@ -9,9 +9,10 @@ Swoole，PHP
 #### 框架特点
 
 + 支持websocket
-+ 通过unixsocket实现多进程间的全局变量一致
++ 通过UnixSocket实现多进程间的全局变量一致
 + 支持独立进程Process
 + 支持Crontab定时任务
++ 基于协程且生产可用的优雅异步回调Promise
 + 支持Task异步投递闭包任务
 + 支持路由注解，中间件注解，全局中间件注解，CLI命令注解
 + 支持AOP面向切片开发
@@ -204,9 +205,9 @@ class HelloController
 
 上述代码的路由如下
 
-| 路径               | 控制器                | 方法     | 中间件         |
-| ------------------ | --------------------- | -------- | -------------- |
-| /hello/index       | HelloController@index | ANY      | 无             |
+| 路径                 | 控制器                   | 方法       | 中间件            |
+|--------------------|-----------------------|----------|----------------|
+| /hello/index       | HelloController@index | ANY      | 无              |
 | /hello/user/{name} | HelloController@msg   | GET,POST | TestMiddleware |
 
 ##### 通过配置文件注册路由

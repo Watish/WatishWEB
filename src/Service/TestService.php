@@ -27,7 +27,11 @@ class TestService
     {
         return new Promise(function (){
             Logger::info("do something");
-           return "do something";
+
+           return new Promise(function (){
+               Logger::info("do something in promise of promise");
+               return "do something in promise of promise * 2";
+           });
         });
     }
 

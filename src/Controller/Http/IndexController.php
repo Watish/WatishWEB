@@ -33,6 +33,7 @@ class IndexController
     public function test_promise(Request $request): array
     {
         $promise = $this->testService->promise_do_something()
+            ->then(fn($res)=>Logger::info($res))
             ->then(fn($res)=>$this->testService->promise_then_do_something())
             ->then(fn($res)=>$this->testService->promise_finally_do_something())
             ->then(fn($res)=>Logger::info("Cannot Reach Here"))
