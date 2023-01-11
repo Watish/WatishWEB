@@ -6,8 +6,10 @@ use Illuminate\Database\ConnectionInterface;
 use PDO;
 use Predis\Client;
 use Swoole\Coroutine;
+use Watish\Components\Constructor\RedisPoolConstructor;
 use Watish\Components\Struct\DatabaseExtend;
 use Watish\Components\Utils\ConnectionPool;
+use Watish\Components\Utils\PDOPool;
 
 class Database
 {
@@ -16,36 +18,32 @@ class Database
     private static ConnectionInterface $sqlConnection;
 
     private static $clientSet = [];
+    private static bool $enablePool = false;
 
     public static function mysql() : DatabaseExtend
     {
-        return new DatabaseExtend(self::$sqlConnection,null,null,self::getPdo());
+        return new DatabaseExtend(self::$sqlConnection,null,null,self::$enablePool);
     }
 
-    public static function putPdo(PDO $pdo) :void
+    public static function enablePDOPool() :void
     {
-        self::$pdoPool->put($pdo);
+        PDOPool::startPool();
+        self::$enablePool = true;
+    }
+
+    public static function enableRedisPool() :void
+    {
+        RedisPoolConstructor::startPool();
     }
 
     public static function redis() :Client
     {
-        $cid = Coroutine::getuid();
-        $client = self::$redisPool->get();
-        self::$clientSet["redis"][$cid][] = $client;
-        return $client;
+        return self::$redisPool->get();
     }
 
     public static function putRedis(Client $client): void
     {
         self::$redisPool->put($client);
-    }
-
-    public static function getPdo() : PDO
-    {
-        $cid = Coroutine::getuid();
-        $client = self::$pdoPool->get();
-        self::$clientSet["pdo"][$cid][] = $client;
-        return $client;
     }
 
     /**
@@ -54,14 +52,6 @@ class Database
     public static function setRedisPool(ConnectionPool $redisPool): void
     {
         self::$redisPool = $redisPool;
-    }
-
-    /**
-     * @param ConnectionPool $pdoPool
-     */
-    public static function setPdoPool(ConnectionPool $pdoPool): void
-    {
-        self::$pdoPool = $pdoPool;
     }
 
     /**
@@ -74,22 +64,6 @@ class Database
 
     public static function reset(): void
     {
-        $cid = Coroutine::getuid();
-        if(isset(self::$clientSet["pdo"][$cid]))
-        {
-            foreach (self::$clientSet["pdo"][$cid] as $client)
-            {
-                self::$pdoPool->put($client);
-            }
-            unset(self::$clientSet["pdo"][$cid]);
-        }
-        if(isset(self::$clientSet["redis"][$cid]))
-        {
-            foreach (self::$clientSet["redis"][$cid] as $client)
-            {
-                self::$redisPool->put($client);
-            }
-            unset(self::$clientSet["redis"][$cid]);
-        }
+
     }
 }

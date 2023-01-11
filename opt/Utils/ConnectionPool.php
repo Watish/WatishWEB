@@ -4,7 +4,6 @@ namespace Watish\Components\Utils;
 
 use Swoole\Coroutine;
 use Swoole\Coroutine\Channel;
-use Watish\Components\Utils\Lock\MultiLock;
 
 class ConnectionPool
 {
@@ -14,7 +13,6 @@ class ConnectionPool
     private Channel $channel;
     private int $client_num;
     private bool $started = false;
-    private bool $lock = false;
     private int $live_time;
     private int $qps = 0;
     private string $name;
@@ -63,6 +61,7 @@ class ConnectionPool
             $this->client_num--;
             if(time() - $res["time"] > $this->live_time)
             {
+                Coroutine::sleep(0.001);
                 continue;
             }else{
                 break;
@@ -135,9 +134,7 @@ class ConnectionPool
         {
             return;
         }
-        MultiLock::lock($this->name);
         $client = $this->getClient();
-        MultiLock::unlock($this->name);
         if(!$client)
         {
             return;

@@ -4,7 +4,6 @@ use Swoole\Coroutine;
 use Swoole\Coroutine\Http\Server;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
-use Swoole\Lock;
 use Watish\Components\Constructor\AsyncTaskConstructor;
 use Watish\Components\Constructor\ClassLoaderConstructor;
 use Watish\Components\Constructor\CommandConstructor;
@@ -91,25 +90,16 @@ WoopsConstructor::init();
 
 $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($processNameSet,$route,$pool_worker_num,$server_config) {
 
-    Coroutine::set([
-        'enable_preemptive_scheduler' => true
-    ]);
-
     $route_dispatcher = $route->get_dispatcher();
 
-    //Init DatabaseExtend in worker process
-    PdoPoolConstructor::startPool();
-    RedisPoolConstructor::startPool();
-
-    //Init DatabaseExtend
+    //Start Pool
     if(DATABASE_CONFIG["mysql"]["enable"])
     {
-        Database::setPdoPool(PdoPoolConstructor::getPdoPool());
-        Database::setSqlConnection(PdoPoolConstructor::getSqlConnection());
+        Database::enablePDOPool();
     }
     if(DATABASE_CONFIG["redis"]["enable"])
     {
-        Database::setRedisPool(RedisPoolConstructor::getRedisPool());
+        Database::enableRedisPool();
     }
 
     //Init AsyncTask
@@ -258,8 +248,7 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
                 if($rec)
                 {
                     try{
-                        $handler = new \Watish\Components\Utils\Worker\SignalHandler($rec);
-                        $handler->handle();
+                        (new \Watish\Components\Utils\Worker\SignalHandler($rec))->handle();
                     }catch (Exception $e)
                     {
                         Logger::error($e->getMessage());

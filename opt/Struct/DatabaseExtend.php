@@ -9,25 +9,34 @@ use Illuminate\Database\Query\Grammars\Grammar;
 use Illuminate\Database\Query\Processors\Processor;
 use Illuminate\Support\Arr;
 use Watish\Components\Utils\Logger;
+use Watish\Components\Utils\PDOPool;
 
 class DatabaseExtend extends Builder
 {
-    private $pdo;
 
-    public function __construct(ConnectionInterface $connection, Grammar $grammar = null, Processor $processor = null,$pdo)
+    private bool $usePool = false;
+
+    public function __construct(ConnectionInterface $connection, Grammar $grammar = null, Processor $processor = null , bool $usePool = false)
     {
         parent::__construct($connection, $grammar, $processor);
         $this->connection = $connection;
-        $this->pdo = $pdo;
+        $this->usePool = $usePool;
     }
 
     public function count($columns = '*'): int
     {
+        if(!$this->usePool)
+        {
+            return parent::count($columns);
+        }
         $sql = parent::toSql();
+        $pdo = PDOPool::getPdo();
         $statement = $this->pdo->prepare($sql);
         $bindings = parent::getBindings();
         $statement->execute($bindings);
-        return $statement->rowCount();
+        $res = $statement->rowCount();
+        PDOPool::putPdo($pdo);
+        return $res;
     }
 
     public function table(string $table,$as = null): DatabaseExtend
@@ -42,11 +51,15 @@ class DatabaseExtend extends Builder
 
     public function newQuery(): DatabaseExtend
     {
-        return new DatabaseExtend($this->connection,$this->grammar,$this->processor,$this->pdo);
+        return new DatabaseExtend($this->connection,$this->grammar,$this->processor,$this->usePool);
     }
 
     public function insert(array $values): bool
     {
+        if(!$this->usePool)
+        {
+            return parent::insert($values);
+        }
         //Raw Logic
         if (empty($values)) {
             return true;
@@ -64,9 +77,12 @@ class DatabaseExtend extends Builder
         $this->applyBeforeQueryCallbacks();
 
         //Override
-        $statement = $this->pdo->prepare($this->grammar->compileInsert($this, $values));
+        $pdo = PDOPool::getPdo();
+        $statement = $pdo->prepare($this->grammar->compileInsert($this, $values));
         $statement->execute($this->cleanBindings(Arr::flatten($values, 1)));
-        return $statement->rowCount();
+        $res = $statement->rowCount();
+        PDOPool::putPdo($pdo);
+        return $res;
     }
 
     public function useWritePdo(): DatabaseExtend|static
@@ -87,11 +103,18 @@ class DatabaseExtend extends Builder
 
     public function get($columns = ['*']) :array
     {
+        if(!$this->usePool)
+        {
+            return parent::get($columns)->toArray();
+        }
         $sql = parent::toSql();
-        $statement = $this->pdo->prepare($sql);
+        $pdo = PDOPool::getPdo();
+        $statement = $pdo->prepare($sql);
         $bindings = parent::getBindings();
         $statement->execute($bindings);
-        return $statement->fetchAll(\PDO::FETCH_ASSOC);
+        $res = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        PDOPool::putPdo($pdo);
+        return $res;
     }
 
     public function lockForUpdate(): DatabaseExtend|static
@@ -106,24 +129,43 @@ class DatabaseExtend extends Builder
 
     public function first($columns = ['*']) :array|false
     {
+        if(!$this->usePool)
+        {
+            $resArray = parent::first($columns);
+            return $resArray ? $resArray->toArray() : false;
+        }
         $sql = parent::toSql();
-        $statement = $this->pdo->prepare($sql);
+        $pdo = PDOPool::getPdo();
+        $statement = $pdo->prepare($sql);
         $bindings = parent::getBindings();
         $statement->execute($bindings);
-        return $statement->fetch(\PDO::FETCH_ASSOC);
+        $res = $statement->fetch(\PDO::FETCH_ASSOC);
+        PDOPool::putPdo($pdo);
+        return $res;
     }
 
     public function exists():bool
     {
+        if(!$this->usePool)
+        {
+            return parent::exists();
+        }
         $sql = parent::toSql();
-        $statement = $this->pdo->prepare($sql);
+        $pdo = PDOPool::getPdo();
+        $statement = $pdo->prepare($sql);
         $bindings = parent::getBindings();
         $statement->execute($bindings);
-        return ($statement->rowCount()>0);
+        $res = ($statement->rowCount()>0);
+        PDOPool::putPdo($pdo);
+        return $res;
     }
 
     public function update(array $values) :int
     {
+        if(!$this->usePool)
+        {
+            return parent::update($values);
+        }
         //Raw Logic
         $this->applyBeforeQueryCallbacks();
         $sql = $this->grammar->compileUpdate($this, $values);
@@ -131,24 +173,34 @@ class DatabaseExtend extends Builder
             $this->grammar->prepareBindingsForUpdate($this->bindings, $values)
         );
         //Override
-        $statement = $this->pdo->prepare($sql);
+        $pdo = PDOPool::getPdo();
+        $statement = $pdo->prepare($sql);
         $statement->execute($bindings);
-        return $statement->rowCount();
+        $res = $statement->rowCount();
+        PDOPool::putPdo($pdo);
+        return $res;
     }
 
     public function delete($id = null): int
     {
+        if(!$this->usePool)
+        {
+            return parent::delete($id);
+        }
         //Raw Logic
         if (! is_null($id)) {
             $this->where($this->from.'.id', '=', $id);
         }
         $this->applyBeforeQueryCallbacks();
 
-        //
-        $statement = $this->pdo->prepare($this->grammar->compileDelete($this));
+        //Overide
+        $pdo = PDOPool::getPdo();
+        $statement = $pdo->prepare($this->grammar->compileDelete($this));
         $statement->execute($this->cleanBindings(
             $this->grammar->prepareBindingsForDelete($this->bindings)));
-        return $statement->rowCount();
+        $res = $statement->rowCount();
+        PDOPool::putPdo($pdo);
+        return $res;
     }
 
     public function toSql(): string

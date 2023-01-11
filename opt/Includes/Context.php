@@ -418,7 +418,6 @@ class Context
     {
         $cid = self::getCoUid();
         unset(self::$set[$cid]);
-        Database::reset();
         Logger::debug("Cid {$cid} Reset");
     }
 }

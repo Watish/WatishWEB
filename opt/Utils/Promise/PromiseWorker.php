@@ -61,6 +61,7 @@ class PromiseWorker
             //Handle Queue
             while(1)
             {
+                $startTime = time();
                 //Wait Channel
                 while(1)
                 {
