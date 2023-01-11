@@ -639,6 +639,9 @@ Crontab(string $rule)
 - ulrichsg/getopt-php
 - illuminate/validation
 - nikic/fast-route
+- illuminate/contracts
+- illuminate/view
+- swoole/ide-helper
 
 #### 框架性能表现
 
