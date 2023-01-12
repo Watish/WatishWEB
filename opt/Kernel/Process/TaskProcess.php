@@ -1,11 +1,11 @@
 <?php
 
-namespace Watish\WatishWEB\Process;
+namespace Watish\Components\Kernel\Process;
 
 use Swoole\Coroutine;
-use Watish\Components\Struct\Channel\UnlimitedChannel;
 use Watish\Components\Struct\Channel\UnlimitedStaticChannel;
 use Watish\Components\Utils\ProcessSignal;
+use Watish\WatishWEB\Process\ProcessInterface;
 
 class TaskProcess implements ProcessInterface
 {

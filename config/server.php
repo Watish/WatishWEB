@@ -40,11 +40,17 @@ return  [
             "dir" => "/src/Command/",
             "namespace" => "Watish\WatishWEB\Command",
             "deep" => true,
+        ],
+        "process" => [
+            "dir" => "/src/Process/",
+            "namespace" => "Watish\WatishWEB\Process",
+            "deep" => true,
         ]
     ],
 
     // When setting true, all controllers
     // in directory /src/Controller/ will be scanned
     // and parse its Prefix,Path,Middleware attributes to register route
-    "register_route_auto" => true
+    "register_route_auto" => true,
+    "register_process_auto" => true
 ];

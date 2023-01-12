@@ -3,7 +3,10 @@
 namespace Watish\Components\Constructor;
 
 use Exception;
+use Watish\Components\Attribute\Crontab;
 use Watish\Components\Includes\Process;
+use Watish\Components\Utils\AttributeLoader\AttributeLoader;
+use Watish\Components\Utils\Injector\ClassInjector;
 use Watish\Components\Utils\Logger;
 
 class ProcessConstructor
@@ -11,7 +14,7 @@ class ProcessConstructor
     private static array $processNameSet;
     private static array $processList;
     private static array $pidProcessSet;
-    private static Process|\Swoole\Process $process;
+    private static Process $process;
 
     /**
      * @throws Exception
@@ -19,11 +22,20 @@ class ProcessConstructor
     public static function init(): void
     {
         $process = new Process();
+        self::$process = $process;
+
         $processNameSet = [];
         $processList = [];
         $pidProcessSet = [];
-        require_once BASE_DIR . '/config/process.php';
-        do_register_process($process);
+
+        if(SERVER_CONFIG["register_process_auto"])
+        {
+            self::scanProcess();
+        }else{
+            require_once BASE_DIR . '/config/process.php';
+            do_register_process($process);
+        }
+
         $executed_list = $process->GetAllProcess();
         //Start Process
         foreach ($executed_list as $process_array)
@@ -38,7 +50,7 @@ class ProcessConstructor
                         call_user_func_array($list_executed_array,[$proc]);
                     }catch (Exception $e)
                     {
-                        Logger::error($e->getMessage(),"Process");
+                        Logger::exception($e);
                     }
                 },false,SOCK_DGRAM, true);
                 $status = $process->start();
@@ -56,7 +68,6 @@ class ProcessConstructor
         self::$processNameSet = $processNameSet;
         self::$processList = $processList;
         self::$pidProcessSet = $pidProcessSet;
-        self::$process = $process;
     }
 
     /**
@@ -81,5 +92,25 @@ class ProcessConstructor
     public static function getProcessNameSet(): array
     {
         return self::$processNameSet;
+    }
+
+    /**
+     * @throws Exception
+     */
+    private static function scanProcess(): void
+    {
+        $classLoader = ClassLoaderConstructor::getClassLoader("process");
+        $attributeLoader = new AttributeLoader($classLoader->getClasses());
+        $attributes = $attributeLoader->getClassAttributes(\Watish\Components\Attribute\Process::class);
+        $i = 0;
+        foreach ($attributes as $class => $item) {
+            $i ++;
+            if ($item["count"] > 0) {
+                $process_name = $item["attributes"][0]["params"][0] ?? "process_{$i}";
+                $process_num = $item["attributes"][0]["params"][1] ?? 1;
+                $callback = [ClassInjector::getInjectedInstance($class),"execute"];
+                self::$process->Register($callback,$process_name,$process_num);
+            }
+        }
     }
 }

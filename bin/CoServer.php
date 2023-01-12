@@ -7,6 +7,7 @@ use Swoole\Http\Response;
 use Watish\Components\Constructor\AsyncTaskConstructor;
 use Watish\Components\Constructor\ClassLoaderConstructor;
 use Watish\Components\Constructor\CommandConstructor;
+use Watish\Components\Constructor\CrontabConstructor;
 use Watish\Components\Constructor\LocalFilesystemConstructor;
 use Watish\Components\Constructor\PdoPoolConstructor;
 use Watish\Components\Constructor\ProcessConstructor;
@@ -39,6 +40,7 @@ ENV::load(BASE_DIR.'.env');
 $server_config = require_once BASE_DIR .'/config/server.php';
 define("SERVER_CONFIG", $server_config);
 define("CACHE_PATH",$server_config["cache_path"]);
+define("CPU_NUM",swoole_cpu_num());
 
 //TimeZone
 ini_set("date.timezone",$server_config["timezone"]);
@@ -67,6 +69,12 @@ ClassInjector::init();
 CommandConstructor::init();
 CommandConstructor::autoRegister();
 CommandConstructor::handle();
+
+//Task Process
+AsyncTaskConstructor::init();
+
+//Crontab Process
+CrontabConstructor::init();
 
 //Process
 ProcessConstructor::init();
@@ -108,7 +116,7 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
     }
 
     //Init AsyncTask
-    AsyncTaskConstructor::init(Context::getProcess("Task"));
+    AsyncTaskConstructor::init();
 
     //get worker process
     $worker_process = $pool->getProcess();
