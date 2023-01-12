@@ -30,7 +30,7 @@ class ViewConstructor
         );
         $dispatcher = new \Illuminate\Events\Dispatcher();
         $factory = new \Illuminate\View\Factory($engine_resolver,$finder,$dispatcher);
-        $compiler = new BladeCompiler($illuminate_filesystem,BASE_DIR.'/storage/Framework/ViewCache/');
+        $compiler = new BladeCompiler($illuminate_filesystem,CACHE_PATH.'/ViewCache/');
         $engine = new CompilerEngine($compiler,$illuminate_filesystem);
         self::$engine = $engine;
         self::$factory = $factory;

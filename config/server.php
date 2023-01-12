@@ -1,11 +1,14 @@
 <?php
 
+use Watish\Components\Utils\ENV;
+
 return  [
-    "debug_mode" => false,
+    "debug_mode" => (bool)ENV::getConfig("App")["DEBUG_MODE"],
     "worker_num" => swoole_cpu_num(),
-    "listen_host" => "0.0.0.0",
-    "listen_port" => 9502,
-    "timezone" => "Asia/Shanghai",
+    "listen_host" => ENV::getConfig("Server")["LISTEN_HOST"],
+    "listen_port" => (int)ENV::getConfig("Server")["LISTEN_PORT"],
+    "timezone" => ENV::getConfig("Server")["TIMEZONE"],
+    "cache_path" => ENV::getConfig("Server")["TEMP_PATH"].'/'.md5(ENV::getConfig("App")["APP_NAME"]),
     //Autoload Class and injector will inject classes loaded
     "class_loader" => [
         "controller" => [

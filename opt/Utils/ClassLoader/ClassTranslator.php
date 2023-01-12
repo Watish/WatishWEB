@@ -55,12 +55,12 @@ class ClassTranslator
     public function save_and_require(): void
     {
         $random_file_name = md5(uniqid().$this->short_name.time().rand(1000,9999)).'.php';
-        $file_system = LocalFilesystemConstructor::getFilesystem();
-        $file_path = "/storage/Framework/Runtime/{$random_file_name}";
-        $file_system->write("/storage/Framework/Runtime/{$random_file_name}",$this->proxy_code_content);
+        $file_system = LocalFilesystemConstructor::getRootFilesystem();
+        $file_path = CACHE_PATH."/Runtime/{$random_file_name}";
+        $file_system->write( $file_path,$this->proxy_code_content);
         Logger::debug("File:{$this->filename},Start:{$this->start_line},End:{$this->end_line},Class:{$this->short_name}");
-        Logger::debug("/storage/Framework/Runtime/{$random_file_name}");
-        require BASE_DIR . $file_path;
+        Logger::debug( CACHE_PATH."/Runtime/{$random_file_name}");
+        require $file_path;
     }
 
     public function getProxyClassName(): string

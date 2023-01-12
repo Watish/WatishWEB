@@ -37,6 +37,7 @@ class ConnectionPool
                 $this->make();
             }
         });
+        self::watching();
     }
 
     public function stopPool():void
@@ -51,23 +52,17 @@ class ConnectionPool
         {
             return $this->getClient();
         }
-        while(1)
-        {
-            if($this->client_num <= 0)
-            {
-                $this->make();
-            }
-            $res = $this->channel->pop();
-            $this->client_num--;
-            if(time() - $res["time"] > $this->live_time)
-            {
-                Coroutine::sleep(0.001);
-                continue;
-            }else{
-                break;
-            }
-        }
         $this->qps++;
+        if($this->client_num <= 0)
+        {
+            return $this->getClient();
+        }
+        $this->client_num--;
+        $res = $this->channel->pop();
+        if(time() - $res["time"] > $this->live_time)
+        {
+            return $this->getClient();
+        }
         return $res["client"];
     }
 
@@ -148,24 +143,23 @@ class ConnectionPool
 
     public function watching() :void
     {
+        Logger::debug("Watching","ConnectionPool");
         Coroutine::create(function (){
             while(1)
             {
-                Coroutine::sleep(60);
+                Coroutine::sleep(1);
                 $qps = $this->qps;
                 $this->qps = 0;
-                if($qps%60>0)
-                {
-                    $qps = (int)($qps/60) + 1;
-                }else{
-                    $qps = (int)($qps/60);
-                }
-                Logger::debug("{$this->name} qps:{$qps}",$this->name);
                 if($qps > $this->min_count)
                 {
                     // qps > client_num >= min_count
                     if($this->client_num <= $this->min_count)
                     {
+                        if($qps > $this->max_count)
+                        {
+                            Logger::debug("{$this->name} qps:{$qps}",$this->name);
+                        }
+
                         Logger::debug("{$this->name} fill",$this->name);
                         while(1)
                         {

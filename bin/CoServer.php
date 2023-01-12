@@ -16,6 +16,7 @@ use Watish\Components\Constructor\ViewConstructor;
 use Watish\Components\Constructor\WoopsConstructor;
 use Watish\Components\Includes\Database;
 use Watish\Components\Includes\Context;
+use Watish\Components\Utils\ENV;
 use Watish\Components\Utils\Injector\ClassInjector;
 use Watish\Components\Utils\Logger;
 use Watish\Components\Utils\Table;
@@ -31,9 +32,13 @@ require_once BASE_DIR . '/vendor/autoload.php';
 //Init Local file system
 LocalFilesystemConstructor::init();
 
+//Load Env
+ENV::load(BASE_DIR.'.env');
+
 //Server Config
 $server_config = require_once BASE_DIR .'/config/server.php';
 define("SERVER_CONFIG", $server_config);
+define("CACHE_PATH",$server_config["cache_path"]);
 
 //TimeZone
 ini_set("date.timezone",$server_config["timezone"]);
@@ -185,6 +190,9 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
             }
         }
 
+        Context::setResponse($struct_response);
+        Context::setRequest($struct_request);
+
         //Before Middleware
         if(count($before_middlewares) > 0)
         {
@@ -208,6 +216,9 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
                 }
             }
         }
+
+        Context::setResponse($struct_response);
+        Context::setRequest($struct_request);
 
         //Controller
         Logger::debug("Controller...");

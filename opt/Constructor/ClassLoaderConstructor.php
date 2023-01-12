@@ -22,12 +22,12 @@ class ClassLoaderConstructor
         $class_loader_list = $server_config["class_loader"];
         $fileSystem = LocalFilesystemConstructor::getFilesystem();
         try{
-            if($fileSystem->directoryExists("/storage/Framework/Runtime/"))
+            if($fileSystem->directoryExists(CACHE_PATH."/Runtime/"))
             {
-                $fileSystem->deleteDirectory("/storage/Framework/Runtime/");
-                $fileSystem->createDirectory("/storage/Framework/Runtime/");
+                $fileSystem->deleteDirectory(CACHE_PATH."/Runtime/");
+                $fileSystem->createDirectory(CACHE_PATH."/Runtime/");
             }else{
-                $fileSystem->createDirectory("/storage/Framework/Runtime/");
+                $fileSystem->createDirectory(CACHE_PATH."/Runtime/");
             }
         }catch (\Exception $exception)
         {
