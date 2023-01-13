@@ -9,14 +9,14 @@ Swoole，PHP
 #### 框架特点
 
 + 支持websocket
-+ 通过UnixSocket实现多进程间的全局变量一致
++ 通过UnixSocket异步实现多进程间的全局变量一致
 + 支持独立进程Process
-+ 支持Crontab定时任务
++ 可动态添加，修改，删除的Crontab定时任务
 + 基于协程且生产可用的优雅异步回调Promise
 + 支持Task异步投递闭包任务
 + 支持路由注解，中间件注解，全局中间件注解，CLI命令注解
 + 支持AOP面向切片开发
-+ 对Swoole\Table进行了封装，使用分块存储，现可以用键值对存放任何数据（包括闭包）
++ 基于Swoole\Table的分块存储KV内存表
 
 #### 环境要求
 
@@ -117,6 +117,7 @@ class HelloController
 - Aspect 切片，方法注解 Aspect(string $class)
 - Command 命令，类注解 Command(string $command , string $prefix)
 - Crontab 定时任务，类注解 Crontab(string $rule)
+- Process 独立进程，类注解 Process(string $name , int $worker_num =1)
 
 
 
@@ -132,7 +133,7 @@ class HelloController
 
 **Context**是一个静态类，不仅提供了简单的**Get**，**Set**方法，还通过进程通信提供了**多worker进程**全局变量的GlobalSet，GlobalGet等方法
 
-注：多worker进程全局变量仅适用于广播通信的业务场景，请勿重度依赖GlobalSet等基于多进程通信统一的方法，如需高并发，数据强一致请使用 **Watish\Components\Utils\Table** ，一个对 **Swoole\Table** 的封装，可以充分利用每一行资源，并支持闭包序列化
+注：多worker进程全局变量设定(Context::Global_Set等方法)是基于UnixSocket异步实现的，不能保证某一时刻的数据一致，这里可以使用 **Watish\Components\Utils\Table** ，一个对 **Swoole\Table** 的封装KV内存表，可以充分利用每一行资源，并支持闭包序列化
 
 
 

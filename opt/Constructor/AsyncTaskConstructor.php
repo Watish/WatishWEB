@@ -41,6 +41,7 @@ class AsyncTaskConstructor
     public static function make(\Closure $closure) :void
     {
         Coroutine::create(function () use ($closure){
+            Coroutine::sleep(0.001);
             $taskProcessList = self::$taskProcessList;
             $taskProcess = $taskProcessList[rand(0,count($taskProcessList)-1)];
             MultiLock::lock("async_task");
