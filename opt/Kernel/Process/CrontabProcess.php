@@ -85,8 +85,8 @@ class CrontabProcess implements ProcessInterface
                                     {
                                         $closure = $cronArray["closure"];
                                         @$closure();
+                                        unset($this->cronHash[$name]);
                                     }
-                                    unset($this->cronHash[$name]);
                                 }
                             }catch (\Exception $exception)
                             {
