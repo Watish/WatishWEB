@@ -2,16 +2,22 @@
 
 namespace Watish\Components\Constructor;
 
+use Illuminate\Events\Dispatcher;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\View\Compilers\BladeCompiler;
 use Illuminate\View\Engines\CompilerEngine;
+use Illuminate\View\Engines\EngineResolver;
 use Illuminate\View\Engines\FileEngine;
+use Illuminate\View\Engines\PhpEngine;
+use Illuminate\View\Factory;
+use Illuminate\View\FileViewFinder;
 use Illuminate\View\View;
 use Watish\Components\Utils\Logger;
 
 class ViewConstructor
 {
     private static CompilerEngine $engine;
-    private static \Illuminate\View\Factory $factory;
+    private static Factory $factory;
     private static string $view_path;
     private static bool $init = false;
 
@@ -21,16 +27,25 @@ class ViewConstructor
         {
             return;
         }
-        $engine_resolver = new \Illuminate\View\Engines\EngineResolver();
-        $illuminate_filesystem = new \Illuminate\Filesystem\Filesystem();
-        self::$view_path = BASE_DIR.'storage/View/';
-        $finder = new \Illuminate\View\FileViewFinder(
-            $illuminate_filesystem,
-            [BASE_DIR]
-        );
-        $dispatcher = new \Illuminate\Events\Dispatcher();
-        $factory = new \Illuminate\View\Factory($engine_resolver,$finder,$dispatcher);
+
+        $illuminate_filesystem = new Filesystem();
         $compiler = new BladeCompiler($illuminate_filesystem,CACHE_PATH.'/ViewCache/');
+        $engine_resolver = new EngineResolver;
+        $engine_resolver->register("blade",function () use ($compiler,$illuminate_filesystem){
+            return new CompilerEngine($compiler,$illuminate_filesystem);
+        });
+        $engine_resolver->register("php",function () use ($compiler,$illuminate_filesystem){
+            return new PhpEngine($illuminate_filesystem);
+        });
+
+        self::$view_path = BASE_DIR.'/storage/View/';
+        $finder = new FileViewFinder(
+            $illuminate_filesystem,
+            [BASE_DIR.'/storage/View/']
+        );
+        $dispatcher = new Dispatcher();
+        $factory = new Factory($engine_resolver,$finder,$dispatcher);
+
         $engine = new CompilerEngine($compiler,$illuminate_filesystem);
         self::$engine = $engine;
         self::$factory = $factory;
@@ -43,7 +58,7 @@ class ViewConstructor
         {
             self::init();
         }
-        $view = new View(self::$factory, self::$engine, $view, self::$view_path.$view.".blade.php", $data);
+        $view = self::$factory->make($view,$data);
         try{
             return $view->render();
         }catch (\Exception $exception)
