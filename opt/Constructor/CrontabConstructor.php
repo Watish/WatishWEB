@@ -50,7 +50,10 @@ class CrontabConstructor
     public static function addCron(string $rule,string $name,callable $callback) :void
     {
         Coroutine::create(function () use ($rule,$name,$callback){
-            Coroutine::sleep(0.001);
+            if(self::$init)
+            {
+                Coroutine::sleep(0.001);
+            }
             $msg = json_encode([
                 "type" => "crontab",
                 "rule" => $rule,
@@ -64,7 +67,10 @@ class CrontabConstructor
     public static function delCron(string $name) :void
     {
         Coroutine::create(function () use ($name){
-            Coroutine::sleep(0.001);
+            if(self::$init)
+            {
+                Coroutine::sleep(0.001);
+            }
             $msg = json_encode([
                 "type" => "delete",
                 "name" => $name
