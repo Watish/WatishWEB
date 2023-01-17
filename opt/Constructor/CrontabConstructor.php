@@ -112,7 +112,8 @@ class CrontabConstructor
     {
         Coroutine::create(function () use ($msg) {
             $taskProcessList = self::$taskProcessList;
-            $process = $taskProcessList[rand(0,count($taskProcessList)-1)];
+            shuffle($taskProcessList);
+            $process = $taskProcessList[0];
             MultiLock::lock("CrontabProcess");
             $socket = $process->exportSocket();
             $socket->send($msg);

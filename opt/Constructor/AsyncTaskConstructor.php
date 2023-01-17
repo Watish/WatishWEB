@@ -43,7 +43,8 @@ class AsyncTaskConstructor
         Coroutine::create(function () use ($closure){
             Coroutine::sleep(0.001);
             $taskProcessList = self::$taskProcessList;
-            $taskProcess = $taskProcessList[rand(0,count($taskProcessList)-1)];
+            shuffle($taskProcessList);
+            $taskProcess = $taskProcessList[0];
             MultiLock::lock("async_task");
             $socket = $taskProcess->exportSocket();
             $socket->send(ProcessSignal::AsyncTask($closure));

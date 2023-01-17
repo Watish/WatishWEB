@@ -62,6 +62,7 @@ RedisPoolConstructor::init();
 
 //Init ClassLoader and Inject
 ClassLoaderConstructor::init();
+
 //Init Injector and preCache all class loader
 ClassInjector::init();
 
@@ -70,11 +71,11 @@ CommandConstructor::init();
 CommandConstructor::autoRegister();
 CommandConstructor::handle();
 
-//Task Process
-AsyncTaskConstructor::init();
-
 //Crontab Process
 CrontabConstructor::init();
+
+//Task Process
+AsyncTaskConstructor::init();
 
 //Process
 ProcessConstructor::init();
