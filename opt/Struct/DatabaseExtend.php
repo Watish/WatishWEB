@@ -25,13 +25,9 @@ class DatabaseExtend extends Builder
 
     public function count($columns = '*'): int
     {
-        if(!$this->usePool)
-        {
-            return parent::count($columns);
-        }
         $sql = parent::toSql();
         $pdo = PDOPool::getPdo();
-        $statement = $this->pdo->prepare($sql);
+        $statement = $pdo->prepare($sql);
         $bindings = parent::getBindings();
         $statement->execute($bindings);
         $res = $statement->rowCount();
@@ -103,10 +99,6 @@ class DatabaseExtend extends Builder
 
     public function get($columns = ['*']) :array
     {
-        if(!$this->usePool)
-        {
-            return parent::get($columns)->toArray();
-        }
         $sql = parent::toSql();
         $pdo = PDOPool::getPdo();
         $statement = $pdo->prepare($sql);
@@ -129,11 +121,6 @@ class DatabaseExtend extends Builder
 
     public function first($columns = ['*']) :array|false
     {
-        if(!$this->usePool)
-        {
-            $resArray = parent::first($columns);
-            return $resArray ? $resArray->toArray() : false;
-        }
         $sql = parent::toSql();
         $pdo = PDOPool::getPdo();
         $statement = $pdo->prepare($sql);
@@ -146,10 +133,6 @@ class DatabaseExtend extends Builder
 
     public function exists():bool
     {
-        if(!$this->usePool)
-        {
-            return parent::exists();
-        }
         $sql = parent::toSql();
         $pdo = PDOPool::getPdo();
         $statement = $pdo->prepare($sql);
@@ -162,10 +145,6 @@ class DatabaseExtend extends Builder
 
     public function update(array $values) :int
     {
-        if(!$this->usePool)
-        {
-            return parent::update($values);
-        }
         //Raw Logic
         $this->applyBeforeQueryCallbacks();
         $sql = $this->grammar->compileUpdate($this, $values);
@@ -183,17 +162,13 @@ class DatabaseExtend extends Builder
 
     public function delete($id = null): int
     {
-        if(!$this->usePool)
-        {
-            return parent::delete($id);
-        }
         //Raw Logic
         if (! is_null($id)) {
             $this->where($this->from.'.id', '=', $id);
         }
         $this->applyBeforeQueryCallbacks();
 
-        //Overide
+        //Override
         $pdo = PDOPool::getPdo();
         $statement = $pdo->prepare($this->grammar->compileDelete($this));
         $statement->execute($this->cleanBindings(
