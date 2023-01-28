@@ -60,12 +60,12 @@ class SignalHandler
         Context::globalSet_Add($this->key,$this->data,$this->uuid,false);
     }
 
-    private function SET_DEL(Context $context):void
+    private function SET_DEL():void
     {
         Context::globalSet_Del($this->key,$this->uuid,false);
     }
 
-    private function SET_PUSH_ALL(Context $context):void
+    private function SET_PUSH_ALL():void
     {
         if(Context::global_Exists($this->key))
         {
