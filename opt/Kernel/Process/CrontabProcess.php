@@ -75,7 +75,12 @@ class CrontabProcess implements ProcessInterface
                                     $next_date = $cron->getNextRunDate('now',0,true,SERVER_CONFIG["timezone"])->format("Y-m-d H:i:s");
                                     $callback = $cronArray["callback"];
                                     if ($next_date == date("Y-m-d H:i:s")) {
-                                        call_user_func_array($callback, []);
+                                        try{
+                                            call_user_func_array($callback, []);
+                                        }catch (\Exception $exception)
+                                        {
+                                            Logger::exception($exception);
+                                        }
                                     }
                                 }
                                 if($cronArray["type"] == "time")
@@ -84,7 +89,12 @@ class CrontabProcess implements ProcessInterface
                                     if(time() >= $time)
                                     {
                                         $closure = $cronArray["closure"];
-                                        @$closure();
+                                        try{
+                                            @$closure();
+                                        }catch (\Exception $exception)
+                                        {
+                                            Logger::exception($exception);
+                                        }
                                         unset($this->cronHash[$name]);
                                     }
                                 }

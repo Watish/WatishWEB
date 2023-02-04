@@ -86,7 +86,7 @@ class CrontabConstructor
                 "type" => "time",
                 "time" => $time,
                 "name" => $name,
-                "callback" => (new SerializableClosure($closure))->serialize()
+                "closure" => @serialize(new SerializableClosure($closure))
             ]);
             self::sendData($msg);
         });
