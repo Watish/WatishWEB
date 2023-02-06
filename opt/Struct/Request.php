@@ -72,9 +72,17 @@ class Request
         }
         if($this->files)
         {
-            foreach ($this->files as $param => $file)
+            foreach ($this->files as $fieldName => $file)
             {
-                $res[$param] = new UploadedFile($file["tmp_name"], $file["name"], $file["type"]);
+                if(is_array($file))
+                {
+                    foreach ($file as $listFile)
+                    {
+                        $res[$fieldName][] = new UploadedFile($listFile["tmp_name"], $listFile["name"], $listFile["type"]);
+                    }
+                }else{
+                    $res[$fieldName] = new UploadedFile($file["tmp_name"], $file["name"], $file["type"]);
+                }
             }
         }
         return $res;
@@ -115,7 +123,15 @@ class Request
         $res = [];
         foreach ($this->files as $name => $file)
         {
-            $res[$name] = new UploadedFile($file["tmp_name"], $file["name"], $file["type"]);
+            if(is_array($file))
+            {
+                foreach ($file as $listFile)
+                {
+                    $res[$name][] = new UploadedFile($listFile["tmp_name"], $listFile["name"], $listFile["type"]);
+                }
+            }else {
+                $res[$name] = new UploadedFile($file["tmp_name"], $file["name"], $file["type"]);
+            }
         }
         return $res;
     }
@@ -147,7 +163,4 @@ class Request
         }
         return false;
     }
-
-
-
 }
