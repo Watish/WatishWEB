@@ -58,8 +58,8 @@ class ClassTranslator
         $file_system = LocalFilesystemConstructor::getRootFilesystem();
         $file_path = CACHE_PATH."/Runtime/{$random_file_name}";
         $file_system->write( $file_path,$this->proxy_code_content);
-        Logger::debug("File:{$this->filename},Start:{$this->start_line},End:{$this->end_line},Class:{$this->short_name}");
-        Logger::debug( CACHE_PATH."/Runtime/{$random_file_name}");
+//        Logger::debug("File:{$this->filename},Start:{$this->start_line},End:{$this->end_line},Class:{$this->short_name}");
+//        Logger::debug( CACHE_PATH."/Runtime/{$random_file_name}");
         require $file_path;
     }
 

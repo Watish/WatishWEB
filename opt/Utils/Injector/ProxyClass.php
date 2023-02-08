@@ -79,7 +79,7 @@ class ProxyClass
 
     public function __call(string $name, array $arguments)
     {
-        Logger::debug("Be Called $name","ProxyClass");
+//        Logger::debug("Be Called $name","ProxyClass");
         //Aspect
         if(isset($this->proxy_data["aspect"][$name]))
         {

@@ -1098,17 +1098,17 @@
         },
         {
             "name": "illuminate/filesystem",
-            "version": "v9.46.0",
-            "version_normalized": "9.46.0.0",
+            "version": "v9.51.0",
+            "version_normalized": "9.51.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/filesystem.git",
-                "reference": "9923cb717f5505b84200fb78feba1c2f2fe9fe83"
+                "reference": "eb6cfdb07d375c9b128d6080a11756e5358d0faa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/filesystem/zipball/9923cb717f5505b84200fb78feba1c2f2fe9fe83",
-                "reference": "9923cb717f5505b84200fb78feba1c2f2fe9fe83",
+                "url": "https://api.github.com/repos/illuminate/filesystem/zipball/eb6cfdb07d375c9b128d6080a11756e5358d0faa",
+                "reference": "eb6cfdb07d375c9b128d6080a11756e5358d0faa",
                 "shasum": ""
             },
             "require": {
@@ -1120,7 +1120,9 @@
                 "symfony/finder": "^6.0"
             },
             "suggest": {
+                "ext-fileinfo": "Required to use the Filesystem class.",
                 "ext-ftp": "Required to use the Flysystem FTP driver.",
+                "ext-hash": "Required to use the Filesystem class.",
                 "illuminate/http": "Required for handling uploaded files (^7.0).",
                 "league/flysystem": "Required to use the Flysystem local driver (^3.0.16).",
                 "league/flysystem-aws-s3-v3": "Required to use the Flysystem S3 driver (^3.0).",
@@ -1130,7 +1132,7 @@
                 "symfony/filesystem": "Required to enable support for relative symbolic links (^6.0).",
                 "symfony/mime": "Required to enable support for guessing extensions (^6.0)."
             },
-            "time": "2022-12-08T16:55:54+00:00",
+            "time": "2023-02-06T02:52:41+00:00",
             "type": "library",
             "extra": {
                 "branch-alias": {

@@ -13,6 +13,8 @@ class LocalFilesystemConstructor
     private static FilesystemAdapter $illuminate_filesystem;
     private static Filesystem $root_filesystem;
     private static FilesystemAdapter $root_illuminate_filesystem;
+    private static Filesystem $public_filesystem;
+    private static FilesystemAdapter $public_illuminate_filesystem;
 
     public static function init(): void
     {
@@ -24,12 +26,16 @@ class LocalFilesystemConstructor
         // Determine root directory
             '/'
         );
+        $public_adapter = new LocalFilesystemAdapter(
+            BASE_DIR.'public/'
+        );
         $filesystem = new Filesystem($adapter);
         self::$illuminate_filesystem = new FilesystemAdapter($filesystem,$adapter,[]);
         self::$filesystem = $filesystem;
-        $root_filesystem = new Filesystem($root_adapter);
-        self::$root_filesystem = $root_filesystem;
-        self::$root_illuminate_filesystem = new FilesystemAdapter($root_filesystem,$adapter,[]);
+        self::$root_filesystem = new Filesystem($root_adapter);
+        self::$public_filesystem = new Filesystem($public_adapter);
+        self::$root_illuminate_filesystem = new FilesystemAdapter(self::$root_filesystem,$adapter,[]);
+        self::$public_illuminate_filesystem = new FilesystemAdapter(self::$public_filesystem,$public_adapter,[]);
     }
 
     /**
@@ -38,6 +44,14 @@ class LocalFilesystemConstructor
     public static function getFilesystem(): Filesystem
     {
         return self::$filesystem;
+    }
+
+    /**
+     * @return Filesystem
+     */
+    public static function getPublicFilesystem(): Filesystem
+    {
+        return self::$public_filesystem;
     }
 
     /**
@@ -62,5 +76,10 @@ class LocalFilesystemConstructor
     public static function getRootIlluminateFilesystem(): FilesystemAdapter
     {
         return self::$root_illuminate_filesystem;
+    }
+
+    public static function getPublicIlluminateFilesystem(): FilesystemAdapter
+    {
+        return self::$public_illuminate_filesystem;
     }
 }

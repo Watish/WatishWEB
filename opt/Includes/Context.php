@@ -41,7 +41,7 @@ class Context
         Coroutine::create(function () use ($signal){
             $cid = self::getCoUid();
             $worker_id = self::$workerId;
-            Logger::debug("Signaling Workers From Cid #$cid","Worker#{$worker_id}");
+//            Logger::debug("Signaling Workers From Cid #$cid","Worker#{$worker_id}");
             GlobalLock::lock('signalWorker');
             for($i=0;$i<(self::$workerNum);$i++)
             {
@@ -121,7 +121,7 @@ class Context
     {
         $cid = self::getCoUid();
         self::$set[$cid]["abort"] = true;
-        Logger::debug("Cid {$cid} Aborted!");
+//        Logger::debug("Cid {$cid} Aborted!");
     }
 
     public static function isAborted() :bool
@@ -418,6 +418,6 @@ class Context
     {
         $cid = self::getCoUid();
         unset(self::$set[$cid]);
-        Logger::debug("Cid {$cid} Reset");
+//        Logger::debug("Cid {$cid} Reset");
     }
 }

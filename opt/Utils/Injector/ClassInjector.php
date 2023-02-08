@@ -59,10 +59,10 @@ class ClassInjector
             Logger::exception($exception);
             return null;
         }
-        Logger::debug($class_name,'ClassInjector');
+//        Logger::debug($class_name,'ClassInjector');
         if(ClassCache::exists($class_name))
         {
-            Logger::debug("Hit Cache : {$class_name}","Injector");
+//            Logger::debug("Hit Cache : {$class_name}","Injector");
             $obj = ClassCache::get($class_name);
             if(!is_null($obj))
             {
@@ -89,7 +89,7 @@ class ClassInjector
             }
             $inject_class_name = $attributes[0]->getArguments()[0];
             $property->setValue($obj,self::deep_inject_to_instance(self::get_proxy_class($inject_class_name)));
-            Logger::debug("{$class_name}:{$property_name} Injected by {$inject_class_name}","Injector");
+//            Logger::debug("{$class_name}:{$property_name} Injected by {$inject_class_name}","Injector");
 
         }
 
@@ -115,7 +115,7 @@ class ClassInjector
             self::$deep_class_count[$className] ++;
             if(self::$deep_class_count[$className] >= 2)
             {
-                Logger::debug("Deep Inject $className","Injector");
+//                Logger::debug("Deep Inject $className","Injector");
                 $obj = self::$deep_class_pool[$className];
                 unset(self::$deep_class_pool[$className]);
                 unset(self::$deep_class_count[$className]);

@@ -132,13 +132,22 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
         'package_eof'    => "\r\n", //设置EOF
         'hook_flags'     => SWOOLE_HOOK_ALL
     ]);
+    //Public Filesystem
+    $public_filesystem = LocalFilesystemConstructor::getPublicFilesystem();
     //Route Cache
     $route_cache = new Watish\Components\Struct\Hash\Hash();
     //Handle Request
-    $server->handle('/',function (Request $request, Response $response) use ($route,$route_dispatcher,$server,$workerId,&$route_cache){
+    $server->handle('/',function (Request $request, Response $response) use ($route,$route_dispatcher,$server,$workerId,$public_filesystem,&$route_cache){
         Logger::debug("Worker #{$workerId}");
         Logger::debug($request->server["request_uri"],"Request");
         $real_path = $request->server["request_uri"];
+        if($public_filesystem->fileExists($real_path))
+        {
+            $mime_type = $public_filesystem->mimeType($real_path);
+            $response->header('Content-Type', $mime_type);
+            $response->sendfile(BASE_DIR.'public'.$real_path);
+            return;
+        }
         $request_method = $request->getMethod();
         if($route_cache->exists($real_path))
         {
@@ -282,5 +291,5 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
     $server->start();
 });
 Logger::clear();
-Logger::CLImate()->bold()->white()->addArt(BASE_DIR."/storage/Framework")->draw("Logo");
+//Logger::CLImate()->bold()->white()->addArt(BASE_DIR."/storage/Framework")->draw("Logo");
 $pool->start();

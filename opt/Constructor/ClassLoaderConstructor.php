@@ -20,7 +20,7 @@ class ClassLoaderConstructor
         }
         $server_config = Table::get("server_config");
         $class_loader_list = $server_config["class_loader"];
-        $fileSystem = LocalFilesystemConstructor::getFilesystem();
+        $fileSystem = LocalFilesystemConstructor::getRootFilesystem();
         try{
             if($fileSystem->directoryExists(CACHE_PATH."/Runtime/"))
             {

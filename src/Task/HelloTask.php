@@ -10,6 +10,6 @@ class HelloTask implements TaskInterface
 {
     public function execute(): void
     {
-        Logger::info("Hello","HelloTask");
+//        Logger::info("Hello","HelloTask");
     }
 }
