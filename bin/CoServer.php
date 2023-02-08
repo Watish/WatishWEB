@@ -141,6 +141,7 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
         Logger::debug("Worker #{$workerId}");
         Logger::debug($request->server["request_uri"],"Request");
         $real_path = $request->server["request_uri"];
+        //判断目录文件是否存在
         if($public_filesystem->fileExists($real_path))
         {
             $mime_type = $public_filesystem->mimeType($real_path);
@@ -148,6 +149,7 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
             $response->sendfile(BASE_DIR.'public'.$real_path);
             return;
         }
+        //匹配路由
         $request_method = $request->getMethod();
         if($route_cache->exists($real_path))
         {
@@ -162,6 +164,7 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
         Context::setResponse($struct_response);
         switch ($route_info[0])
         {
+            //404
             case FastRoute\Dispatcher::NOT_FOUND:
                 Context::json([
                     "Ok" => false,
@@ -169,6 +172,7 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
                 ],404);
                 Context::reset();
                 return;
+            //403
             case \FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
                 Context::json([
                     "Ok" => false,
