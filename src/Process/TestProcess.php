@@ -11,9 +11,12 @@ class TestProcess implements ProcessInterface
 {
     public function execute(\Swoole\Process $process): void
     {
-        Coroutine::create(function () {
-           Coroutine::sleep(2);
-           Logger::warn("Test","TestProcess");
+        Logger::info("Hello World");
+        Coroutine::create(function (){
+            while (1)
+            {
+                Coroutine::sleep(1);
+            }
         });
     }
 

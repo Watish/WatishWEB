@@ -13,6 +13,7 @@ use Watish\Components\Utils\ENV;
 use Watish\Components\Utils\Injector\ClassInjector;
 use Watish\Components\Utils\Lock\MultiLock;
 use Watish\Components\Utils\Logger;
+use Watish\Components\Utils\Pid\PidHelper;
 
 class CrontabConstructor
 {
@@ -32,7 +33,12 @@ class CrontabConstructor
         $crontab_process_num = (int)ENV::getConfig("Process")["CRONTAB_PROCESS_NUM"];
         for($i=1;$i<=$crontab_process_num;$i++)
         {
-            $process = new Process(function (Process $proc){
+            $process = new Process(function (Process $proc) use ($i){
+                Process::signal(SIGTERM,function() use($proc,$i) {
+                    $proc_num = $i-1;
+                    Logger::info("Crontab Process#{$proc_num} is going to shutdown...","Crontab");
+                    $proc->exit(0);
+                });
                 try{
                     (new CrontabProcess())->execute($proc);
                 }catch (Exception $e)
@@ -41,6 +47,7 @@ class CrontabConstructor
                 }
             },false,SOCK_DGRAM, true);
             $process->start();
+            PidHelper::add("Crontab",$process->pid);
             self::$taskProcessList[] = $process;
         }
         self::scanTask();

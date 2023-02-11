@@ -4,10 +4,12 @@ namespace Watish\Components\Constructor;
 
 use Exception;
 use Swoole\Coroutine;
+use Swoole\Process;
 use Watish\Components\Kernel\Process\TaskProcess;
 use Watish\Components\Utils\ENV;
 use Watish\Components\Utils\Lock\MultiLock;
 use Watish\Components\Utils\Logger;
+use Watish\Components\Utils\Pid\PidHelper;
 use Watish\Components\Utils\ProcessSignal;
 
 class AsyncTaskConstructor
@@ -24,7 +26,12 @@ class AsyncTaskConstructor
         $task_process_num = (int)ENV::getConfig("Process")["TASK_PROCESS_NUM"];
         for($i=1;$i<=$task_process_num;$i++)
         {
-            $process = new \Swoole\Process(function (\Swoole\Process $proc){
+            $process = new \Swoole\Process(function (\Swoole\Process $proc) use($i) {
+                Process::signal(SIGTERM,function () use ($proc,$i){
+                    $proc_num = $i-1;
+                    Logger::info("Task Process#{$proc_num} is going to shutdown...");
+                    $proc->exit(0);
+                });
                 try{
                     (new TaskProcess())->execute($proc);
                 }catch (Exception $e)
@@ -33,6 +40,7 @@ class AsyncTaskConstructor
                 }
             },false,SOCK_DGRAM, true);
             $process->start();
+            PidHelper::add("AsyncTask",$process->pid);
             self::$taskProcessList[] = $process;
         }
         self::$init = true;

@@ -4,6 +4,7 @@ use Swoole\Coroutine;
 use Swoole\Coroutine\Http\Server;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use Swoole\Process;
 use Watish\Components\Constructor\AsyncTaskConstructor;
 use Watish\Components\Constructor\ClassLoaderConstructor;
 use Watish\Components\Constructor\CommandConstructor;
@@ -20,7 +21,9 @@ use Watish\Components\Includes\Context;
 use Watish\Components\Utils\ENV;
 use Watish\Components\Utils\Injector\ClassInjector;
 use Watish\Components\Utils\Logger;
+use Watish\Components\Utils\Pid\PidHelper;
 use Watish\Components\Utils\Table;
+use Watish\Components\Utils\Worker\SignalHandler;
 
 //Define project base dir
 const BASE_DIR = __DIR__ . "/../";
@@ -104,6 +107,13 @@ WoopsConstructor::init();
 
 $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($processNameSet,$route,$pool_worker_num,$server_config) {
 
+    //Once
+    if($workerId == 0)
+    {
+        PidHelper::add("Master",$pool->master_pid);
+    }
+
+    //Route Dispatcher
     $route_dispatcher = $route->get_dispatcher();
 
     //Start Pool
@@ -119,7 +129,9 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
     //Init AsyncTask
     AsyncTaskConstructor::init();
 
-    //get worker process
+    /**
+     * @var $worker_process Process
+     */
     $worker_process = $pool->getProcess();
 
     //Init Worker Process,Pool
@@ -132,14 +144,18 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
         'package_eof'    => "\r\n", //设置EOF
         'hook_flags'     => SWOOLE_HOOK_ALL
     ]);
+    //Signal SIGTERM
+    Process::signal(SIGTERM,function() use ($server,$workerId){
+        Logger::info("Server#{$workerId} is going to shutdown...");
+        $server->shutdown();
+    });
     //Public Filesystem
     $public_filesystem = LocalFilesystemConstructor::getPublicFilesystem();
     //Route Cache
     $route_cache = new Watish\Components\Struct\Hash\Hash();
     //Handle Request
     $server->handle('/',function (Request $request, Response $response) use ($route,$route_dispatcher,$server,$workerId,$public_filesystem,&$route_cache){
-        Logger::debug("Worker #{$workerId}");
-        Logger::debug($request->server["request_uri"],"Request");
+        Logger::debug($request->server["request_uri"],"Request#{$workerId}");
         $real_path = $request->server["request_uri"];
         //判断目录文件是否存在
         if($public_filesystem->fileExists($real_path))
@@ -270,9 +286,8 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
 
     //Watching Worker Process
     Coroutine::create(function() use (&$worker_process) {
-        $cid = Coroutine::getuid();
         $worker_id = Context::getWorkerId();
-        Logger::debug("Worker #{$worker_id} Cid #{$cid} Started");
+        Logger::debug("Worker #{$worker_id} Started...");
         $socket = $worker_process->exportSocket();
         Coroutine::create(function ()use ($socket){
             while (1)
@@ -281,7 +296,7 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
                 if($rec)
                 {
                     try{
-                        (new \Watish\Components\Utils\Worker\SignalHandler($rec))->handle();
+                        (new SignalHandler($rec))->handle();
                     }catch (Exception $e)
                     {
                         Logger::error($e->getMessage());
@@ -295,5 +310,6 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
     $server->start();
 });
 Logger::clear();
-//Logger::CLImate()->bold()->white()->addArt(BASE_DIR."/storage/Framework")->draw("Logo");
+Logger::info("Server Started...");
 $pool->start();
+

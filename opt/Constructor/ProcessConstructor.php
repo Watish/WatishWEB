@@ -3,11 +3,13 @@
 namespace Watish\Components\Constructor;
 
 use Exception;
+use Swoole\Coroutine;
 use Watish\Components\Attribute\Crontab;
 use Watish\Components\Includes\Process;
 use Watish\Components\Utils\AttributeLoader\AttributeLoader;
 use Watish\Components\Utils\Injector\ClassInjector;
 use Watish\Components\Utils\Logger;
+use Watish\Components\Utils\Pid\PidHelper;
 
 class ProcessConstructor
 {
@@ -35,7 +37,7 @@ class ProcessConstructor
             require_once BASE_DIR . '/config/process.php';
             do_register_process($process);
         }
-
+        $pid_list = [];
         $executed_list = $process->GetAllProcess();
         //Start Process
         foreach ($executed_list as $process_array)
@@ -46,12 +48,20 @@ class ProcessConstructor
             for($i=1;$i<=$worker_num;$i++)
             {
                 $process = new \Swoole\Process(function (\Swoole\Process $proc) use ($list_executed_array){
-                    try{
-                        call_user_func_array($list_executed_array,[$proc]);
-                    }catch (Exception $e)
-                    {
-                        Logger::exception($e);
-                    }
+                    \Swoole\Process::signal(SIGTERM,function () use ($proc){
+                        Logger::info("Process|{$proc->pid} is going to shutdown...","Process");
+                        $proc->exit(0);
+                    });
+                    Coroutine::create(function () use ($proc,$list_executed_array){
+                        try{
+                            call_user_func_array($list_executed_array,[$proc]);
+                        }catch (Exception $e)
+                        {
+                            Logger::exception($e);
+                            Logger::info("$proc->pid Exited","Process");
+                            $proc->exit(0);
+                        }
+                    });
                 },false,SOCK_DGRAM, true);
                 $status = $process->start();
                 $pid = $process->pid;
@@ -60,6 +70,7 @@ class ProcessConstructor
                     $pidProcessSet[$pid] = $process;
                     $processNameSet[$process_name][] = $process;
                     $processList[] = $process;
+                    PidHelper::add($process_name,$pid);
                 }else{
                     Logger::error("Process: {$process_name}#{$i} ,PID:$pid, Error");
                 }
