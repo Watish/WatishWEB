@@ -9,6 +9,7 @@ use Watish\Components\Constructor\AsyncTaskConstructor;
 use Watish\Components\Constructor\ClassLoaderConstructor;
 use Watish\Components\Constructor\CommandConstructor;
 use Watish\Components\Constructor\CrontabConstructor;
+use Watish\Components\Constructor\EventConstructor;
 use Watish\Components\Constructor\LocalFilesystemConstructor;
 use Watish\Components\Constructor\PdoPoolConstructor;
 use Watish\Components\Constructor\ProcessConstructor;
@@ -92,6 +93,9 @@ Context::setProcesses($processNameSet);
 //Init Route
 RouteConstructor::init();
 $route = RouteConstructor::getRoute();
+
+//Init Event
+EventConstructor::init();
 
 //Init Server Pool
 $pool_worker_num = $server_config["worker_num"];

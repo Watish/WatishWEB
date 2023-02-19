@@ -6,5 +6,5 @@ use Watish\Components\Includes\Context;
 
 interface EventInterface
 {
-    public function trigger(): void ;
+    public function trigger(array $data): void ;
 }

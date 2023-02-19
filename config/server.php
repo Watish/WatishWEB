@@ -45,6 +45,11 @@ return  [
             "dir" => "/src/Process/",
             "namespace" => "Watish\WatishWEB\Process",
             "deep" => true,
+        ],
+        "event"  => [
+            "dir" => "/src/Event/",
+            "namespace" => "Watish\WatishWEB\Event",
+            "deep" => true,
         ]
     ],
 

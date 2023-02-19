@@ -2,11 +2,13 @@
 
 namespace Watish\WatishWEB\Event;
 
+use Watish\Components\Attribute\Event;
 use Watish\Components\Includes\Context;
 
+#[Event("public_chat_user_left")]
 class PublicChatUserLeft implements EventInterface
 {
-    public function trigger(): void
+    public function trigger(array $data): void
     {
         $push_key = "public_chat_channel";
         $user_pool_key = "public_chat_channel_users";
