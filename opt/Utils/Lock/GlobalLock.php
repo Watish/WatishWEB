@@ -4,56 +4,69 @@ namespace Watish\Components\Utils\Lock;
 
 use League\CLImate\TerminalObject\Basic\Tab;
 use Swoole\Coroutine;
+use Watish\Components\Utils\Logger;
 use Watish\Components\Utils\Table;
 
 class GlobalLock
 {
-    private static array $init = [];
-    public static function lock(string $name='default') :void
+    private static \Swoole\Table $table;
+    private static int $size;
+    public static function lock(string $name='default',int $timeOut = 5) :bool
     {
-        self::init($name);
-        $cid = Coroutine::getCid();
         MultiLock::lock($name);
+        $key = self::lock_key($name);
+        $startTime = time();
         while(1)
         {
-            if(!Table::get(self::lock_key($name)))
+            if(time() - $startTime > $timeOut)
             {
+                MultiLock::unlock($name);
+                return false;
+            }
+            if(!self::$table->exists($key))
+            {
+                self::$table->set($key,["lock"=>1]);
+                break;
+            }elseif(!self::$table->get($key,"lock")){
+                self::$table->set($key,["lock"=>1]);
                 break;
             }
-            Coroutine::sleep(CPU_SLEEP_TIME);
+            Coroutine::sleep(0.001);
         }
-        Table::set(self::lock_key($name),true);
+        return true;
     }
 
     public static function unlock(string $name="default") :void
     {
-        self::init($name);
-        Table::set(self::lock_key($name),false);
+        $key = self::lock_key($name);
+        self::$table->set($key,["lock"=>0]);
         MultiLock::unlock($name);
     }
 
-    private static function init(string $name="default") :void
+    public static function setTable(\Swoole\Table $table,int $size): void
     {
-        if(!isset(self::$init[$name])) {
-            $lock_key = self::lock_key($name);
-            $lock_wait_list_key = self::lock_wait_list_key($name);
-            if (!Table::exists($lock_key)) {
-                Table::set($lock_key, false);
+        self::$table = $table;
+        self::$size = $size;
+    }
+
+
+    private static function lock_key($name):string
+    {
+        $key = substr(md5($name),8,16);
+        $words = explode(',','a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z');
+        $index = 0;
+        foreach ($words as $word)
+        {
+            $index++;
+            if($index>9)
+            {
+                $index = 0;
             }
-            if (!Table::exists($lock_wait_list_key)) {
-                Table::set($lock_wait_list_key, []);
-            }
-            self::$init[$name] = true;
+            $key = str_replace($word,$index,$key);
         }
-    }
-
-    private static function lock_key($name="default"):string
-    {
+        $key = (int)$key;
+        $size = (int)(self::$size * 0.75);
+        $name = $key%$size + 1;
         return "LOCK_{$name}";
-    }
-
-    private static function lock_wait_list_key($name="default"):string
-    {
-        return "LOCK_WAIT_LIST_{$name}";
     }
 }

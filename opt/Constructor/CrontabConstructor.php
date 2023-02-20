@@ -8,12 +8,14 @@ use Swoole\Coroutine;
 use Swoole\Process;
 use Watish\Components\Attribute\Crontab;
 use Watish\Components\Kernel\Process\CrontabProcess;
+use Watish\Components\Kernel\Process\TaskProcess;
 use Watish\Components\Utils\AttributeLoader\AttributeLoader;
 use Watish\Components\Utils\ENV;
 use Watish\Components\Utils\Injector\ClassInjector;
 use Watish\Components\Utils\Lock\MultiLock;
 use Watish\Components\Utils\Logger;
 use Watish\Components\Utils\Pid\PidHelper;
+use Watish\Components\Utils\Process\ProcessManager;
 
 class CrontabConstructor
 {
@@ -33,14 +35,15 @@ class CrontabConstructor
         $crontab_process_num = (int)ENV::getConfig("Process")["CRONTAB_PROCESS_NUM"];
         for($i=1;$i<=$crontab_process_num;$i++)
         {
-            $process = new Process(function (Process $proc) use ($i){
+            $messager = ProcessManager::make("Crontab");
+            $process = new Process(function (Process $proc) use ($i,$messager){
                 Process::signal(SIGTERM,function() use($proc,$i) {
                     $proc_num = $i-1;
                     Logger::info("Crontab Process#{$proc_num} is going to shutdown...","Crontab");
                     $proc->exit(0);
                 });
                 try{
-                    (new CrontabProcess())->execute($proc);
+                    ClassInjector::getInjectedInstance(CrontabProcess::class)->execute($proc,$messager);
                 }catch (Exception $e)
                 {
                     Logger::error($e->getMessage(),"Process");
@@ -118,13 +121,15 @@ class CrontabConstructor
     private static function sendData(string $msg): void
     {
         Coroutine::create(function () use ($msg) {
-            $taskProcessList = self::$taskProcessList;
-            shuffle($taskProcessList);
-            $process = $taskProcessList[0];
-            MultiLock::lock("CrontabProcess");
-            $socket = $process->exportSocket();
-            $socket->send($msg);
-            MultiLock::unlock("CrontabProcess");
+//            $taskProcessList = self::$taskProcessList;
+//            shuffle($taskProcessList);
+//            $process = $taskProcessList[0];
+//            MultiLock::lock("CrontabProcess");
+            $messager = ProcessManager::get_messager_by_name("Crontab");
+            $messager->write($msg);
+//            $socket = $process->exportSocket();
+//            $socket->send($msg);
+//            MultiLock::unlock("CrontabProcess");
         });
     }
 

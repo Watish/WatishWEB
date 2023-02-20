@@ -5,11 +5,12 @@ namespace Watish\WatishWEB\Process;
 use Swoole\Coroutine;
 use Watish\Components\Attribute\Process;
 use Watish\Components\Utils\Logger;
+use Watish\Components\Utils\Process\Messager;
 
 #[Process("Test")]
 class TestProcess implements ProcessInterface
 {
-    public function execute(\Swoole\Process $process): void
+    public function execute(\Swoole\Process $process,Messager $messager): void
     {
         Logger::info("Hello World");
         Coroutine::create(function (){

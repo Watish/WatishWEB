@@ -10,6 +10,7 @@ use Watish\Components\Utils\AttributeLoader\AttributeLoader;
 use Watish\Components\Utils\Injector\ClassInjector;
 use Watish\Components\Utils\Logger;
 use Watish\Components\Utils\Pid\PidHelper;
+use Watish\Components\Utils\Process\ProcessManager;
 
 class ProcessConstructor
 {
@@ -47,14 +48,15 @@ class ProcessConstructor
             $worker_num = $process_array["worker"];
             for($i=1;$i<=$worker_num;$i++)
             {
-                $process = new \Swoole\Process(function (\Swoole\Process $proc) use ($list_executed_array){
+                $messager = ProcessManager::make($process_name);
+                $process = new \Swoole\Process(function (\Swoole\Process $proc) use ($list_executed_array,$messager){
                     \Swoole\Process::signal(SIGTERM,function () use ($proc){
                         Logger::info("Process|{$proc->pid} is going to shutdown...","Process");
                         $proc->exit(0);
                     });
-                    Coroutine::create(function () use ($proc,$list_executed_array){
+                    Coroutine::create(function () use ($proc,$list_executed_array,$messager){
                         try{
-                            call_user_func_array($list_executed_array,[$proc]);
+                            call_user_func_array($list_executed_array,[$proc,$messager]);
                         }catch (Exception $e)
                         {
                             Logger::exception($e);

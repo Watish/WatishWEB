@@ -7,9 +7,11 @@ use Swoole\Coroutine;
 use Swoole\Process;
 use Watish\Components\Kernel\Process\TaskProcess;
 use Watish\Components\Utils\ENV;
+use Watish\Components\Utils\Injector\ClassInjector;
 use Watish\Components\Utils\Lock\MultiLock;
 use Watish\Components\Utils\Logger;
 use Watish\Components\Utils\Pid\PidHelper;
+use Watish\Components\Utils\Process\ProcessManager;
 use Watish\Components\Utils\ProcessSignal;
 
 class AsyncTaskConstructor
@@ -26,14 +28,15 @@ class AsyncTaskConstructor
         $task_process_num = (int)ENV::getConfig("Process")["TASK_PROCESS_NUM"];
         for($i=1;$i<=$task_process_num;$i++)
         {
-            $process = new \Swoole\Process(function (\Swoole\Process $proc) use($i) {
+            $messager = ProcessManager::make("AsyncTask");
+            $process = new \Swoole\Process(function (\Swoole\Process $proc) use($i,$messager) {
                 Process::signal(SIGTERM,function () use ($proc,$i){
                     $proc_num = $i-1;
                     Logger::info("Task Process#{$proc_num} is going to shutdown...");
                     $proc->exit(0);
                 });
                 try{
-                    (new TaskProcess())->execute($proc);
+                    ClassInjector::getInjectedInstance(TaskProcess::class)->execute($proc,$messager);
                 }catch (Exception $e)
                 {
                     Logger::error($e->getMessage(),"Process");
@@ -50,13 +53,18 @@ class AsyncTaskConstructor
     {
         Coroutine::create(function () use ($closure){
             Coroutine::sleep(0.001);
-            $taskProcessList = self::$taskProcessList;
-            shuffle($taskProcessList);
-            $taskProcess = $taskProcessList[0];
-            MultiLock::lock("async_task");
-            $socket = $taskProcess->exportSocket();
-            $socket->send(ProcessSignal::AsyncTask($closure));
-            MultiLock::unlock("async_task");
+//            $taskProcessList = self::$taskProcessList;
+//            shuffle($taskProcessList);
+//            $taskProcess = $taskProcessList[0];
+//            MultiLock::lock("async_task");
+            $messager = ProcessManager::get_messager_by_name("AsyncTask");
+            if(!is_null($messager))
+            {
+                $messager->write(ProcessSignal::AsyncTask($closure));
+            }
+//            $socket = $taskProcess->exportSocket();
+//            $socket->send(ProcessSignal::AsyncTask($closure));
+//            MultiLock::unlock("async_task");
         });
     }
 }

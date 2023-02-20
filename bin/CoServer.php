@@ -10,6 +10,7 @@ use Watish\Components\Constructor\ClassLoaderConstructor;
 use Watish\Components\Constructor\CommandConstructor;
 use Watish\Components\Constructor\CrontabConstructor;
 use Watish\Components\Constructor\EventConstructor;
+use Watish\Components\Constructor\GlobalLockConstructor;
 use Watish\Components\Constructor\LocalFilesystemConstructor;
 use Watish\Components\Constructor\PdoPoolConstructor;
 use Watish\Components\Constructor\ProcessConstructor;
@@ -57,6 +58,9 @@ define("DATABASE_CONFIG",$database_config);
 Table::init(2048,32);
 Table::set("server_config",$server_config);
 Table::set("database_config",$database_config);
+
+//Init GlobalLock
+GlobalLockConstructor::init();
 
 //Init Mysql Pool And QueryBuilder
 PdoPoolConstructor::init();

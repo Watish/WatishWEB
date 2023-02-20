@@ -12,6 +12,11 @@ class Table
 
     public static function init(int $row = 1024 , int $chunk_size = 64): void
     {
+        $row = 512 * CPU_NUM;
+        if($row > 4096)
+        {
+            $row = 4096;
+        }
         $table = new \Swoole\Table($row);
         $table->column("data",\Swoole\Table::TYPE_STRING,$chunk_size);
         $table->column("chunk",\Swoole\Table::TYPE_INT);
