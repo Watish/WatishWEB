@@ -5,7 +5,7 @@ namespace Watish\Components\Utils\Process;
 use Swoole\Coroutine;
 use Watish\Components\Utils\Temp\TempList;
 
-class Messager
+class Messenger
 {
     private string $uuid;
     private TempList $tempList;

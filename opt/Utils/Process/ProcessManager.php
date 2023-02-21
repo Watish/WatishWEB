@@ -8,7 +8,7 @@ use Watish\Components\Utils\Table;
 
 class ProcessManager
 {
-    public static function make(string $name): Messager
+    public static function make(string $name): Messenger
     {
         $uuid = self::genUUID();
         if(Coroutine::getCid() > 0)
@@ -31,8 +31,7 @@ class ProcessManager
             Table::set("processHash",$processHash);
             Table::set("UUIDSet",$uuidSet);
         }
-        $messager = new Messager($uuid);
-        return $messager;
+        return new Messenger($uuid);
     }
 
     public static function check_uuid_exists(string $uuid) :bool
@@ -41,7 +40,7 @@ class ProcessManager
         return isset($uuidSet[$uuid]);
     }
 
-    public static function get_messager_by_name(string $name): Messager|null
+    public static function get_messenger_by_name(string $name): Messenger|null
     {
         $processHash = self::getProcessHash();
         if(!isset($processHash[$name]))
@@ -54,7 +53,7 @@ class ProcessManager
             return null;
         }
         $uuid = $processHash[$name][rand(0,$count-1)];
-        return new Messager($uuid);
+        return new Messenger($uuid);
     }
 
     public static function get_uuid_list_by_name(string $name) :array

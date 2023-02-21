@@ -48,15 +48,15 @@ class ProcessConstructor
             $worker_num = $process_array["worker"];
             for($i=1;$i<=$worker_num;$i++)
             {
-                $messager = ProcessManager::make($process_name);
-                $process = new \Swoole\Process(function (\Swoole\Process $proc) use ($list_executed_array,$messager){
+                $messenger = ProcessManager::make($process_name);
+                $process = new \Swoole\Process(function (\Swoole\Process $proc) use ($list_executed_array,$messenger){
                     \Swoole\Process::signal(SIGTERM,function () use ($proc){
                         Logger::info("Process|{$proc->pid} is going to shutdown...","Process");
                         $proc->exit(0);
                     });
-                    Coroutine::create(function () use ($proc,$list_executed_array,$messager){
+                    Coroutine::create(function () use ($proc,$list_executed_array,$messenger){
                         try{
-                            call_user_func_array($list_executed_array,[$proc,$messager]);
+                            call_user_func_array($list_executed_array,[$proc,$messenger]);
                         }catch (Exception $e)
                         {
                             Logger::exception($e);

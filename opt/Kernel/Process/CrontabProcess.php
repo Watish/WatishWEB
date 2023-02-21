@@ -5,24 +5,24 @@ namespace Watish\Components\Kernel\Process;
 use Cron\CronExpression;
 use Swoole\Coroutine;
 use Watish\Components\Utils\Logger;
-use Watish\Components\Utils\Process\Messager;
+use Watish\Components\Utils\Process\Messenger;
 use Watish\WatishWEB\Process\ProcessInterface;
 
 class CrontabProcess implements ProcessInterface
 {
     private array $cronHash = [];
 
-    public function execute(\Swoole\Process $process,Messager $messager): void
+    public function execute(\Swoole\Process $process, Messenger $messenger): void
     {
-        Coroutine::create(function () use ($process,$messager){
+        Coroutine::create(function () use ($process,$messenger){
             Coroutine::enableScheduler();
 
             //Receiver
-            Coroutine::create(function () use ($process,$messager){
+            Coroutine::create(function () use ($process,$messenger){
 //                $socket = $process->exportSocket();
                 while(1)
                 {
-                    $msg = $messager->recv();
+                    $msg = $messenger->recv();
                     if(!$msg)
                     {
                         Coroutine::sleep(CPU_SLEEP_TIME);

@@ -57,10 +57,10 @@ class AsyncTaskConstructor
 //            shuffle($taskProcessList);
 //            $taskProcess = $taskProcessList[0];
 //            MultiLock::lock("async_task");
-            $messager = ProcessManager::get_messager_by_name("AsyncTask");
-            if(!is_null($messager))
+            $messenger = ProcessManager::get_messenger_by_name("AsyncTask");
+            if(!is_null($messenger))
             {
-                $messager->write(ProcessSignal::AsyncTask($closure));
+                $messenger->write(ProcessSignal::AsyncTask($closure));
             }
 //            $socket = $taskProcess->exportSocket();
 //            $socket->send(ProcessSignal::AsyncTask($closure));

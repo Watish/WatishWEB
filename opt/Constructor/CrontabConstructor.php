@@ -125,8 +125,8 @@ class CrontabConstructor
 //            shuffle($taskProcessList);
 //            $process = $taskProcessList[0];
 //            MultiLock::lock("CrontabProcess");
-            $messager = ProcessManager::get_messager_by_name("Crontab");
-            $messager->write($msg);
+            $messenger = ProcessManager::get_messenger_by_name("Crontab");
+            $messenger->write($msg);
 //            $socket = $process->exportSocket();
 //            $socket->send($msg);
 //            MultiLock::unlock("CrontabProcess");
