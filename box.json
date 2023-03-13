@@ -8,26 +8,12 @@
     "opt",
     "config",
     "storage",
-    "vendor",
-    "vendor-bin"
-  ],
-  "directories-bin": [
-    "public"
+    "public",
+    "vendor"
   ],
   "files": [
     ".env",
     "composer.json"
-  ],
-  "map": [
-    {
-      "opt": "opt"
-    },
-    {
-      "vendor": "vendor"
-    },
-    {
-      "src": "src"
-    }
   ],
   "force-autodiscovery": true,
   "dump-autoload": true
