@@ -3,7 +3,7 @@
         'name' => 'watish/watishweb',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '519613f89909329d509d76fa6481e1f31b86dcde',
+        'reference' => '77c42ffa433690081e0ee138c69fe136e0d207c3',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -619,7 +619,7 @@
         'watish/watishweb' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '519613f89909329d509d76fa6481e1f31b86dcde',
+            'reference' => '77c42ffa433690081e0ee138c69fe136e0d207c3',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

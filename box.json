@@ -1,0 +1,34 @@
+{
+  "stub": true,
+  "main": "bin/CoServer.php",
+  "chmod": "0700",
+  "compression": "GZ",
+  "directories": [
+    "src",
+    "opt",
+    "config",
+    "storage",
+    "vendor",
+    "vendor-bin"
+  ],
+  "directories-bin": [
+    "public"
+  ],
+  "files": [
+    ".env",
+    "composer.json"
+  ],
+  "map": [
+    {
+      "opt": "opt"
+    },
+    {
+      "vendor": "vendor"
+    },
+    {
+      "src": "src"
+    }
+  ],
+  "force-autodiscovery": true,
+  "dump-autoload": true
+}

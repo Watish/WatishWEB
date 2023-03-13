@@ -27,7 +27,8 @@ class LocalFilesystemConstructor
             '/'
         );
         $public_adapter = new LocalFilesystemAdapter(
-            BASE_DIR.'public/'
+            // BASE_DIR.'public/'
+            '/'
         );
         $filesystem = new Filesystem($adapter);
         self::$illuminate_filesystem = new FilesystemAdapter($filesystem,$adapter,[]);

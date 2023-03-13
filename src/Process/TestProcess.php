@@ -16,6 +16,7 @@ class TestProcess implements ProcessInterface
         Coroutine::create(function (){
             while (1)
             {
+                Logger::info("111");
                 Coroutine::sleep(1);
             }
         });
