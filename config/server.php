@@ -4,6 +4,7 @@ use Watish\Components\Utils\ENV;
 
 return  [
     "debug_mode" => (bool)ENV::getConfig("App")["DEBUG_MODE"],
+    "box_mode" => (bool)ENV::getConfig("App")["BOX_MODE"],
     "worker_num" => swoole_cpu_num(),
     "listen_host" => ENV::getConfig("Server")["LISTEN_HOST"],
     "listen_port" => (int)ENV::getConfig("Server")["LISTEN_PORT"],

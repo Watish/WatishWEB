@@ -8,12 +8,10 @@
     "opt",
     "config",
     "storage",
-    "public",
-    "vendor"
+    "public"
   ],
   "files": [
-    ".env",
-    "composer.json"
+    ".env"
   ],
   "force-autodiscovery": true,
   "dump-autoload": true

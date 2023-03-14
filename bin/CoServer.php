@@ -28,7 +28,8 @@ use Watish\Components\Utils\Table;
 use Watish\Components\Utils\Worker\SignalHandler;
 
 //Define project base dir
-const BASE_DIR = __DIR__ . "/../";
+const BASE_DIR = __DIR__. "/../";
+
 define("CPU_SLEEP_TIME", (1 / swoole_cpu_num()) );
 define("CPU_USLEEP_TIME", (1 / swoole_cpu_num())*1000);
 
@@ -170,7 +171,8 @@ $pool->on('WorkerStart', function (\Swoole\Process\Pool $pool, $workerId) use ($
         {
             $mime_type = $public_filesystem->mimeType($real_path);
             $response->header('Content-Type', $mime_type);
-            $response->sendfile(BASE_DIR.'public'.$real_path);
+            $response->write($public_filesystem->read($real_path));
+            // $response->sendfile(BASE_DIR.'public'.$real_path);
             return;
         }
         //匹配路由
