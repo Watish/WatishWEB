@@ -43,28 +43,4 @@ class IndexController
             "title" => "Watish Web"
         ]);
     }
-
-    #[Path('/test/promise')]
-    public function test_promise(Request $request): array
-    {
-        $promise = $this->testService->promise_do_something()
-            ->then(fn($res)=>Logger::info($res))
-            ->then(fn($res)=>$this->testService->promise_then_do_something())
-            ->then(fn($res)=>$this->testService->promise_finally_do_something())
-            ->then(fn($res)=>Logger::info("Cannot Reach Here"))
-            ->catch(fn($exception)=>Logger::exception($exception))
-            ->then(fn()=>Logger::info("End"));
-        return [
-            "msg" => "ok"
-        ];
-    }
-
-    #[Path("/hello/{name}")]
-    public function hello_somebody(Request $request):array
-    {
-        $name = $request->route("name");
-        return [
-            "msg" => "hello ".$name
-        ];
-    }
 }
