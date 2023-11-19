@@ -166,7 +166,7 @@ class HelloController
 **Path**是**方法注解**，定义路由路径
 
 ```php
-#[Prefix(string $path,array $methods)]
+#[Path(string $path,array $methods)]
 ```
 
 举个栗子：
